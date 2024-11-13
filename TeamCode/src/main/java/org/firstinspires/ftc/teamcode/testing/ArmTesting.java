@@ -33,6 +33,8 @@ public class ArmTesting extends OpMode {
         collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 //        armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         armClaw = hardwareMap.get(Servo.class, "intakeEffector");
@@ -66,9 +68,13 @@ public class ArmTesting extends OpMode {
             scoringArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+        if (controller2.pressed(Controller.Button.DPadRight)) {
+            endPivotMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
 
-        double pivot = (controller2.pressed(Controller.Button.DPadUp) ? 1 : 0) + (controller2.pressed(Controller.Button.DPadDown) ? -1 : 0);
-        endPivotMotor.setVelocity(pivot * 300);
+        double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
+        endPivotMotor.setVelocity(pivot * 100);
         telemetry.addData("Arm Velocity", armVelocity);
         telemetry.addData("Scoring position", scoringArmMotor.getCurrentPosition());
         telemetry.addData("Collection position", collectionArmMotor.getCurrentPosition());

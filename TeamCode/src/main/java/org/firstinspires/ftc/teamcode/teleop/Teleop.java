@@ -10,6 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.DriveChassis;
 import org.firstinspires.ftc.teamcode.utils.Numbers;
+import org.firstinspires.ftc.teamcode.utils.controller.Controller;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
@@ -37,6 +38,7 @@ public class Teleop extends OpMode {
         chassis = new DriveChassis(this);
     }
 
+    boolean clawClosed, bucketDown = false;
     @Override
     public void loop() {
         // Keeping track of the buttons from the last loop iteration so we do not need a billion booleans
@@ -49,13 +51,40 @@ public class Teleop extends OpMode {
         yawRad = orientation.getYaw(AngleUnit.RADIANS);
         normalizedYaw = Numbers.normalizeAngle(yaw);
 
-
         telemetry.addData("Yaw", yaw);
         telemetry.addData("Yaw Rad", yawRad);
         telemetry.addData("Normalized Yaw", normalizedYaw);
 
         float moveXInput = controller1.axis(Axis.LeftStickX, PowerCurve.Quadratic);
         float moveYInput = controller1.axis(Axis.LeftStickY, PowerCurve.Quadratic);
+        float armXInput = controller2.axis(Axis.RightStickX, PowerCurve.Cubic);
+        float armYInput = controller2.axis(Axis.LeftStickY, PowerCurve.Cubic);
+
+        // This SHOULD be flipped to be correct now
+        if (chassis.collectionArmMotor.getCurrentPosition() <= 0 && armXInput < 0 || chassis.collectionArmMotor.getCurrentPosition() >= 2150 && armXInput > 0) {
+            chassis.collectionArmMotor.setVelocity(0);
+            telemetry.addLine("LIMIT REACHED FOR COLLECTION ARM");
+        }
+        else {
+            chassis.collectionArmMotor.setVelocity(armXInput * 500);
+        }
+
+        // I don tknow if this works
+        double pivot = (controller2.pressed(Controller.Button.DPadUp) ? 1 : 0) + (controller2.pressed(Controller.Button.DPadDown) ? -1 : 0);
+        chassis.endPivotMotor.setVelocity(pivot * 300);
+
+        // I dont know if this works
+        chassis.scoringArmMotor.setVelocity(armYInput * 500);
+        if (controller2.pressed(Controller.Button.A)) {
+            chassis.claw.setPosition(clawClosed ? 1 : 0);
+            clawClosed = !clawClosed;
+        }
+        if (controller2.pressed(Controller.Button.B)) {
+            chassis.bucket.setPosition(bucketDown ? 1 : 0);
+            bucketDown = !bucketDown;
+        }
+
+
         float rotationInput = controller1.axis(Axis.RightStickX, PowerCurve.Cubic);
 
         if (controller1.pressed(Button.RightBumper))
