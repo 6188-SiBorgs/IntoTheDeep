@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.xendy;
 
+import android.os.Environment;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -13,6 +15,13 @@ import org.firstinspires.ftc.teamcode.utils.controller.Controller;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -32,6 +41,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
 
     private double targetRotation;
 
+    public static final String PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/XendysPessimisticAutonomous/";
     // Gamepad States
     private final GameController controller1 = new GameController();
     private final GameController controller2 = new GameController();
@@ -46,7 +56,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
     public void init() {
         chassis = new DriveChassis(this);
         if (!RECORDED_DATA.isEmpty()) {
-            states = Arrays.stream(RECORDED_DATA.split("\\|")).map(this::loadStateFromString).collect(Collectors.toCollection(ArrayList::new));
+            loadStatesFromString();
             chassis.scoringArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             chassis.collectionArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             chassis.endPivotMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -62,6 +72,17 @@ public class XendyNotSimpleAutonomous extends OpMode {
 
             resetRuntime();
         }
+    }
+
+    public void loadStatesFromString() {
+        states = Arrays.stream(RECORDED_DATA.split("\\|")).map(this::loadStateFromString).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public void loadStatesFromFile(String name) throws IOException, ClassNotFoundException {
+        FileInputStream fileInputStream = new FileInputStream(PATH + name + ".robotStates");
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+        states = (ArrayList<SaveState>) objectInputStream.readObject();
+        objectInputStream.close();
     }
 
     boolean DONE_RECORDING = false;
@@ -107,21 +128,27 @@ public class XendyNotSimpleAutonomous extends OpMode {
         double verticalMovePower = moveXInput * Math.sin(-yawRad) + moveYInput * Math.cos(-yawRad);
         double horizontalMovePower = moveXInput * Math.cos(-yawRad) - moveYInput * Math.sin(-yawRad);
         if (RECORDED_DATA.isEmpty()) {
+            float armXInput = controller2.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
+            float armYInput = controller2.axis(Controller.Axis.LeftStickY, PowerCurve.Cubic);
+            if (chassis.collectionArmMotor.getCurrentPosition() <= 0 && armXInput < 0 || chassis.collectionArmMotor.getCurrentPosition() >= 2150 && armXInput > 0) {
+                chassis.collectionArmMotor.setVelocity(0);
+                telemetry.addLine("LIMIT REACHED FOR COLLECTION ARM");
+            }
+            else {
+                chassis.collectionArmMotor.setVelocity(armXInput * 500);
+            }
+
+            double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
+            chassis.endPivotMotor.setVelocity(pivot * 300);
+
+            chassis.scoringArmMotor.setVelocity(armYInput * 1000);
             if (controller2.pressed(Controller.Button.A)) {
                 chassis.claw.setPosition(clawClosed ? 1 : 0);
                 clawClosed = !clawClosed;
             }
             if (controller2.pressed(Controller.Button.B)) {
                 chassis.bucket.setPosition(bucketDown ? 1 : 0);
-                clawClosed = !bucketDown;
-            }
-            double xInput = controller2.axis(Controller.Axis.LeftStickX);
-            if (chassis.collectionArmMotor.getCurrentPosition() >= 0 && xInput > 0 || chassis.collectionArmMotor.getCurrentPosition() <= -2150 && xInput < 0) {
-                chassis.collectionArmMotor.setVelocity(0);
-                telemetry.addLine("LIMIT REACHED FOR COLLECTION ARM");
-            }
-            else {
-                chassis.collectionArmMotor.setVelocity(xInput * 500);
+                bucketDown = !bucketDown;
             }
 
             saveRobotState(horizontalMovePower, verticalMovePower, rotationInput != 0 ? normalizedYaw : targetRotation);
@@ -159,7 +186,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
         states.add(new SaveState(horzPow, vertPow, cYaw));
     }
 
-    private class SaveState {
+    private class SaveState implements Serializable {
         public double t;
         public double mX, mY, yaw;
         public int verticalSlidePosition;
@@ -204,6 +231,14 @@ public class XendyNotSimpleAutonomous extends OpMode {
         state.clawPosition = Double.parseDouble(splits[7]);
         state.bucketPosition = Double.parseDouble(splits[8]);
         return state;
+    }
+
+    private void serializeStates(String name) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(PATH + name + ".robotStates");
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+        objectOutputStream.writeObject(states);
+        objectOutputStream.flush();
+        objectOutputStream.close();
     }
 
     String SERIALIZED_FINAL_STATES = "";

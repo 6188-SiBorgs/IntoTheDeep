@@ -76,6 +76,7 @@ public class ArmTesting extends OpMode {
         double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
         endPivotMotor.setVelocity(pivot * 100);
         telemetry.addData("Arm Velocity", armVelocity);
+        //-46673
         telemetry.addData("Scoring position", scoringArmMotor.getCurrentPosition());
         telemetry.addData("Collection position", collectionArmMotor.getCurrentPosition());
         telemetry.addData("Pivot", endPivotMotor.getCurrentPosition());

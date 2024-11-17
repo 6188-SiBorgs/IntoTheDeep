@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.utils;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -17,7 +18,8 @@ public class DriveChassis {
     public DcMotorEx leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor;
     // -50 to -2150
     public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor;
-    public Servo claw, bucket;
+    public Servo bucket;
+    public CRServo claw;
 
     // Info about our robots design
     public final int TICKS_PER_REVOLUTION = 28;
@@ -59,10 +61,9 @@ public class DriveChassis {
         collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        claw = hardwareMap.get(Servo.class, "intakeEffector");
+        claw = hardwareMap.get(CRServo.class, "intakeEffector");
         bucket = hardwareMap.get(Servo.class, "bucket");
 
-        claw.setPosition(0);
         bucket.setPosition(0);
 
         // Instantiate the imu
