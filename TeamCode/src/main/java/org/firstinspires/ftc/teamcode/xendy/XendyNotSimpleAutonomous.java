@@ -143,7 +143,8 @@ public class XendyNotSimpleAutonomous extends OpMode {
 
             chassis.scoringArmMotor.setVelocity(armYInput * 1000);
             if (controller2.pressed(Controller.Button.A)) {
-                chassis.claw.setPosition(clawClosed ? 1 : 0);
+                //todo
+                // chassis.claw.setPosition(clawClosed ? 1 : 0);
                 clawClosed = !clawClosed;
             }
             if (controller2.pressed(Controller.Button.B)) {
@@ -162,7 +163,8 @@ public class XendyNotSimpleAutonomous extends OpMode {
             chassis.collectionArmMotor.setTargetPosition(currentState.horizontalSlidePosition);
             chassis.endPivotMotor.setTargetPosition(currentState.pivotPosition);
             chassis.bucket.setPosition(currentState.bucketPosition);
-            chassis.claw.setPosition(currentState.clawPosition);
+            // todo
+            // chassis.claw.setPosition(currentState.clawPosition);
         }
         horizontalMovePower *= HORIZONTAL_BALANCE;
 
@@ -203,7 +205,8 @@ public class XendyNotSimpleAutonomous extends OpMode {
             horizontalSlidePosition = chassis.collectionArmMotor.getCurrentPosition();
             pivotPosition = chassis.endPivotMotor.getCurrentPosition();
             bucketPosition = chassis.bucket.getPosition();
-            clawPosition = chassis.claw.getPosition();
+            // todo
+            // clawPosition = chassis.claw.getPosition();
 
             telemetry.addLine("===== LAST SAVED SAVESTATE =====");
             telemetry.addData("time", t);
