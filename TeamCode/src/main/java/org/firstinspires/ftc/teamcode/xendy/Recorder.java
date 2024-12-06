@@ -27,9 +27,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@TeleOp(name="XendyNotSimpleAutonomous")
-public class XendyNotSimpleAutonomous extends OpMode {
-    private final String LOAD_FROM_PATH = "recorded";
+@TeleOp(name="XendyRecorder")
+public class Recorder extends OpMode {
+    private final String LOAD_FROM_PATH = "";
 
     private XDriveChassis chassis;
     private double maxSpeed = 50;
@@ -79,6 +79,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
     boolean DONE_RECORDING = false;
     boolean SENT_TO_TELEMETRY = false;
 
+    boolean CAN_START = false;
     @Override
     public void loop() {
         controller1.update(gamepad1);
@@ -89,7 +90,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
         if (DONE_RECORDING) {
             if (!SENT_TO_TELEMETRY) {
                 try {
-                    serializeStates("test");
+                    serializeStates("recorded");
                 } catch (IOException e) {
                     telemetry.addLine(formatIOException(e));
                     telemetry.update();
@@ -102,6 +103,19 @@ public class XendyNotSimpleAutonomous extends OpMode {
             chassis.rightFrontMotor.setVelocity(0);
             return;
         }
+
+        if (!LOAD_FROM_PATH.isEmpty()) {
+            if (!CAN_START) {
+                telemetry.addData("Loaded states:", states.size());
+                telemetry.update();
+                if (controller1.pressed(Controller.Button.Start)) {
+                    resetRuntime();
+                    CAN_START = true;
+                }
+                return;
+            }
+        }
+
         orientation = chassis.imu.getRobotYawPitchRollAngles();
         yaw = orientation.getYaw();
         yawRad = orientation.getYaw(AngleUnit.RADIANS);
@@ -133,11 +147,8 @@ public class XendyNotSimpleAutonomous extends OpMode {
             // SaveState currentState = states.stream().filter(s->s.t<=getRuntime()).reduce((first, second) -> second).get();
             SaveState currentState = states.get(index);
             while (currentState.t <= getRuntime()) {
-                if (index >= states.size()) {
-                    break;
-                }
-                currentState = states.get(index);
                 index += 1;
+                currentState = states.get(index);
             }
             if (index >= states.size()) {
                 currentState = null;
@@ -222,7 +233,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
                 states.stream().map(s->String.format(
                         "%s:%s:%s:%s",
                         s.t, s.mX, s.mY, s.yaw
-                        )).collect(Collectors.joining("|"));
+                )).collect(Collectors.joining("|"));
     }
 
     public static String formatIOException(IOException e) {

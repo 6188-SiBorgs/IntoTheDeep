@@ -94,12 +94,10 @@ public class Teleop extends OpMode {
         if (clawMoving) chassis.claw.setPower(1);
         else chassis.claw.setPower(0);
 
-
         if (controller2.pressed(Controller.Button.B)) {
             chassis.bucket.setPosition(bucketDown ? 1 : 0);
             bucketDown = !bucketDown;
         }
-
 
         float rotationInput = controller1.axis(Axis.RightStickX, PowerCurve.Cubic);
 

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.xendy;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -13,14 +13,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 /**
  * A class with all of the common data about our robot chassis so we can reuse it in multiple OpModes without reusing too much code
  */
-public class DriveChassis {
+public class XDriveChassis {
     // Initialize our motors
     public DcMotorEx leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor;
-    // -50 to -2150
-    public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor;
-    public Servo bucket;
-    public CRServo claw;
-
     // Info about our robots design
     public static final int TICKS_PER_REVOLUTION = 28;
     public static final double DRIVE_GEAR_RATIO = 20;
@@ -29,7 +24,7 @@ public class DriveChassis {
 
     public IMU imu;
 
-    public DriveChassis(OpMode opMode) {
+    public XDriveChassis(OpMode opMode) {
         HardwareMap hardwareMap = opMode.hardwareMap;
 
         // Instantiate each motor
@@ -47,24 +42,6 @@ public class DriveChassis {
         leftBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Other motors (Arms, end effectors, etc)
-        collectionArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "horizontalSlide");
-        scoringArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "verticalSlide");
-        endPivotMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "endPivotMotor");
-
-        scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        claw = hardwareMap.get(CRServo.class, "intakeEffector");
-        bucket = hardwareMap.get(Servo.class, "bucket");
-
-        bucket.setPosition(0);
 
         // Instantiate the imu
         imu = hardwareMap.get(IMU.class, "imu");
