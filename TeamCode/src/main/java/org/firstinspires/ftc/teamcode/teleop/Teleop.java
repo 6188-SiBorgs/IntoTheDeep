@@ -28,8 +28,7 @@ public class Teleop extends OpMode {
 
     private double targetRotation;
 
-    private boolean clawMoving = false;
-    private double clawEndTime = 0;
+    private boolean clawClosed = false;
 
     // Gamepad States
     private final GameController controller1 = new GameController();
@@ -86,13 +85,10 @@ public class Teleop extends OpMode {
 
         chassis.claw.getController().getPwmStatus();
 
-        if (controller2.pressed(Controller.Button.A))
-            clawEndTime = getRuntime() + 0.5;
-
-        clawMoving = getRuntime() < clawEndTime;
-
-        if (clawMoving) chassis.claw.setPower(1);
-        else chassis.claw.setPower(0);
+        if (controller2.pressed(Controller.Button.A)) {
+            chassis.claw.setPosition(clawClosed ? 1 : 0);
+            clawClosed = !clawClosed;
+        }
 
         if (controller2.pressed(Controller.Button.B)) {
             chassis.bucket.setPosition(bucketDown ? 1 : 0);

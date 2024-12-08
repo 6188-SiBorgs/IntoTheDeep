@@ -19,7 +19,7 @@ public class DriveChassis {
     // -50 to -2150
     public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor;
     public Servo bucket;
-    public CRServo claw;
+    public Servo claw;
 
     // Info about our robots design
     public static final int TICKS_PER_REVOLUTION = 28;
@@ -61,7 +61,7 @@ public class DriveChassis {
         collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        claw = hardwareMap.get(CRServo.class, "intakeEffector");
+        claw = hardwareMap.get(Servo.class, "intakeEffector");
         bucket = hardwareMap.get(Servo.class, "bucket");
 
         bucket.setPosition(0);
