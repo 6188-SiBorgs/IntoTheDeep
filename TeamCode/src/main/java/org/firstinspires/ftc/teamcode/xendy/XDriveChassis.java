@@ -20,7 +20,7 @@ public class XDriveChassis {
     public static final int TICKS_PER_REVOLUTION = 28;
     public static final double DRIVE_GEAR_RATIO = 20;
     public static final double WHEEL_CIRCUMFERENCE = 23.94; // In CM
-    public final double ARM_GEAR_RATIO = 60;
+    public static final float HORIZONTAL_BALANCE = 1.1f;
 
     public IMU imu;
 
@@ -34,8 +34,6 @@ public class XDriveChassis {
         rightBackMotor = hardwareMap.get(DcMotorEx.class, "rightRear");
 
         leftFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -47,10 +45,28 @@ public class XDriveChassis {
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(
                 new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-                        RevHubOrientationOnRobot.UsbFacingDirection.UP
+                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                        RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
                 ))
         );
         imu.resetYaw();
+    }
+
+    public void move(double mx, double my, double r, double maxSpeed) {
+        mx *= HORIZONTAL_BALANCE;
+
+        double denominator = Math.max(Math.abs(my) + Math.abs(mx) + Math.abs(r), 1);
+
+        double leftFPower = (my + mx + r) / denominator;
+        double leftBPower = (my - mx + r) / denominator;
+        double rightFPower = (my - mx - r) / denominator;
+        double rightBPower = (my + mx - r) / denominator;
+
+        double velocityScale = DRIVE_GEAR_RATIO * TICKS_PER_REVOLUTION * maxSpeed / WHEEL_CIRCUMFERENCE;
+
+        leftFrontMotor.setVelocity(leftFPower * velocityScale);
+        rightFrontMotor.setVelocity(rightFPower * velocityScale);
+        leftBackMotor.setVelocity(leftBPower * velocityScale);
+        rightBackMotor.setVelocity(rightBPower * velocityScale);
     }
 }

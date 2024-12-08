@@ -33,7 +33,6 @@ public class Recorder extends OpMode {
 
     private XDriveChassis chassis;
     private double maxSpeed = 50;
-    private final static float HORIZONTAL_BALANCE = 1.1f;
 
     private YawPitchRollAngles orientation;
     private double yaw;
@@ -55,19 +54,8 @@ public class Recorder extends OpMode {
     @Override
     public void init() {
         chassis = new XDriveChassis(this);
-        if (!LOAD_FROM_PATH.isEmpty()) {
-            try {
-                loadStatesFromFile(LOAD_FROM_PATH);
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            resetRuntime();
-        }
     }
 
-    public void loadStatesFromString() {
-        states = Arrays.stream(LOAD_FROM_PATH.split("\\|")).map(this::loadStateFromString).collect(Collectors.toCollection(ArrayList::new));
-    }
 
     public void loadStatesFromFile(String name) throws IOException, ClassNotFoundException {
         FileInputStream fileInputStream = new FileInputStream(PATH + name + ".robotStates");
@@ -78,8 +66,8 @@ public class Recorder extends OpMode {
 
     boolean DONE_RECORDING = false;
     boolean SENT_TO_TELEMETRY = false;
+    boolean RECORDING = false;
 
-    boolean CAN_START = false;
     @Override
     public void loop() {
         controller1.update(gamepad1);
@@ -104,26 +92,24 @@ public class Recorder extends OpMode {
             return;
         }
 
-        if (!LOAD_FROM_PATH.isEmpty()) {
-            if (!CAN_START) {
-                telemetry.addData("Loaded states:", states.size());
-                telemetry.update();
-                if (controller1.pressed(Controller.Button.Start)) {
-                    resetRuntime();
-                    CAN_START = true;
-                }
-                return;
-            }
-        }
-
         orientation = chassis.imu.getRobotYawPitchRollAngles();
         yaw = orientation.getYaw();
+        telemetry.addData("Yaw", yaw);
         yawRad = orientation.getYaw(AngleUnit.RADIANS);
         normalizedYaw = Numbers.normalizeAngle(yaw);
 
-        float moveXInput = controller1.axis(Controller.Axis.LeftStickX, PowerCurve.Quadratic);
+        float moveXInput = -controller1.axis(Controller.Axis.LeftStickX, PowerCurve.Quadratic);
         float moveYInput = controller1.axis(Controller.Axis.LeftStickY, PowerCurve.Quadratic);
         float rotationInput = controller1.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
+
+        if ((moveXInput != 0 || moveYInput != 0 || rotationInput != 0) && !RECORDING) {
+            RECORDING = true;
+            resetRuntime();
+            chassis.imu.resetYaw();
+            yaw = 0;
+            yawRad = 0;
+            normalizedYaw = 0;
+        }
 
         if (controller1.pressed(Controller.Button.RightBumper))
             maxSpeed += SPEED_CHANGE_PER_PRESS;
@@ -135,63 +121,20 @@ public class Recorder extends OpMode {
             targetRotation = normalizedYaw;
         double turnPower;
         if (rotationInput != 0) turnPower = rotationInput;
-        else turnPower = Numbers.turnCorrectionSpeed(normalizedYaw, targetRotation);
+        else turnPower = -Numbers.turnCorrectionSpeed(normalizedYaw, targetRotation);
 
 
-        double verticalMovePower = moveXInput * Math.sin(-yawRad) + moveYInput * Math.cos(-yawRad);
-        double horizontalMovePower = moveXInput * Math.cos(-yawRad) - moveYInput * Math.sin(-yawRad);
-        if (LOAD_FROM_PATH.isEmpty()) {
-            saveRobotState(horizontalMovePower, verticalMovePower, rotationInput != 0 ? normalizedYaw : targetRotation);
+        double verticalMovePower = moveXInput * Math.sin(yawRad) + moveYInput * Math.cos(yawRad);
+        double horizontalMovePower = moveXInput * Math.cos(yawRad) - moveYInput * Math.sin(yawRad);
+        if (RECORDING) {
+            saveRobotState(horizontalMovePower, verticalMovePower, rotationInput, rotationInput != 0 ? normalizedYaw : targetRotation);
+            chassis.move(horizontalMovePower, verticalMovePower, turnPower, maxSpeed);
         }
-        else {
-            // SaveState currentState = states.stream().filter(s->s.t<=getRuntime()).reduce((first, second) -> second).get();
-            SaveState currentState = states.get(index);
-            while (currentState.t <= getRuntime()) {
-                index += 1;
-                currentState = states.get(index);
-            }
-            if (index >= states.size()) {
-                currentState = null;
-            }
-            telemetry.addData("Running state index", index);
-            telemetry.addData("Runtime", getRuntime());
-            telemetry.addLine("\nState data:");
-            if (currentState != null) {
-                telemetry.addData("time", currentState.t);
-                telemetry.addData("mX", currentState.mX);
-                telemetry.addData("mY", currentState.mY);
-                telemetry.addData("yaw", currentState.yaw);
-                horizontalMovePower = currentState.mX;
-                verticalMovePower = currentState.mY;
-                turnPower = Numbers.turnCorrectionSpeed(normalizedYaw, currentState.yaw);
-            }
-            else {
-                telemetry.addLine("Out of states.");
-                horizontalMovePower = 0;
-                verticalMovePower = 0;
-                turnPower = 0;
-            }
-        }
-        horizontalMovePower *= HORIZONTAL_BALANCE;
-
-        double denominator = Math.max(Math.abs(verticalMovePower) + Math.abs(horizontalMovePower) + Math.abs(turnPower), 1);
-
-        double leftFPower = (verticalMovePower + horizontalMovePower + turnPower) / denominator;
-        double leftBPower = (verticalMovePower - horizontalMovePower + turnPower) / denominator;
-        double rightFPower = (verticalMovePower - horizontalMovePower - turnPower) / denominator;
-        double rightBPower = (verticalMovePower + horizontalMovePower - turnPower) / denominator;
-
-        double velocityScale = chassis.DRIVE_GEAR_RATIO * chassis.TICKS_PER_REVOLUTION * maxSpeed / chassis.WHEEL_CIRCUMFERENCE;
-
-        chassis.leftFrontMotor.setVelocity(leftFPower * velocityScale);
-        chassis.rightFrontMotor.setVelocity(rightFPower * velocityScale);
-        chassis.leftBackMotor.setVelocity(leftBPower * velocityScale);
-        chassis.rightBackMotor.setVelocity(rightBPower * velocityScale);
         telemetry.update();
     }
 
-    public void saveRobotState(double horzPow, double vertPow, double cYaw) {
-        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime());
+    public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw) {
+        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime(), maxSpeed, turnPow);
         states.add(latest);
 
         telemetry.addLine("===== LAST SAVED SAVESTATE =====");
@@ -200,17 +143,6 @@ public class Recorder extends OpMode {
         telemetry.addData("mY", latest.mY);
         telemetry.addData("yaw", latest.yaw);
     }
-
-    public SaveState loadStateFromString(String s) {
-        String[] splits = s.split(":");
-        SaveState state = new SaveState(0, 0, 0, 0);
-        state.t = Double.parseDouble(splits[0]);
-        state.mX = Double.parseDouble(splits[1]);
-        state.mY = Double.parseDouble(splits[2]);
-        state.yaw = Double.parseDouble(splits[3]);
-        return state;
-    }
-
     private void serializeStates(String name) throws IOException {
         File directory = new File(PATH);
         if (!directory.exists()) {
