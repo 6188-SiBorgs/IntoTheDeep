@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @TeleOp(name="XendyRecorder")
 public class Recorder extends OpMode {
     private final String LOAD_FROM_PATH = "";
+    private final double MAX_HESITATION_TIME = 0.5;
 
     private XDriveChassis chassis;
     private double maxSpeed = 50;
@@ -56,18 +57,13 @@ public class Recorder extends OpMode {
         chassis = new XDriveChassis(this);
     }
 
-
-    public void loadStatesFromFile(String name) throws IOException, ClassNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(PATH + name + ".robotStates");
-        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-        states = (ArrayList<SaveState>) objectInputStream.readObject();
-        objectInputStream.close();
-    }
-
     boolean DONE_RECORDING = false;
     boolean SENT_TO_TELEMETRY = false;
     boolean RECORDING = false;
 
+    double idleStartTime = -1;
+    double idleRemoveTime = 0;
+    boolean idling = false;
     @Override
     public void loop() {
         controller1.update(gamepad1);
@@ -111,6 +107,22 @@ public class Recorder extends OpMode {
             normalizedYaw = 0;
         }
 
+        if (RECORDING && moveXInput == 0 && moveYInput == 0 && rotationInput == 0) {
+            // idleing
+            if (idleStartTime == -1) {
+                idleStartTime = getRuntime();
+            }
+            double idleTime = getRuntime() - idleStartTime;
+            if (idleTime > MAX_HESITATION_TIME) {
+                idling = true;
+                idleRemoveTime = idleTime - MAX_HESITATION_TIME;
+            }
+        }
+        else {
+            idleStartTime = -1;
+            idling = false;
+        }
+
         if (controller1.pressed(Controller.Button.RightBumper))
             maxSpeed += SPEED_CHANGE_PER_PRESS;
 
@@ -127,14 +139,26 @@ public class Recorder extends OpMode {
         double verticalMovePower = moveXInput * Math.sin(yawRad) + moveYInput * Math.cos(yawRad);
         double horizontalMovePower = moveXInput * Math.cos(yawRad) - moveYInput * Math.sin(yawRad);
         if (RECORDING) {
-            saveRobotState(horizontalMovePower, verticalMovePower, rotationInput, rotationInput != 0 ? normalizedYaw : targetRotation);
-            chassis.move(horizontalMovePower, verticalMovePower, turnPower, maxSpeed);
+            double currentTime = getRuntime() - idleRemoveTime;
+            telemetry.addData("Remaining time:", 28-currentTime);
+            if (28-currentTime <= 0) {
+                DONE_RECORDING = true;
+            }
+            if (!idling) {
+                saveRobotState(horizontalMovePower, verticalMovePower, rotationInput, rotationInput != 0 ? normalizedYaw : targetRotation);
+                chassis.move(horizontalMovePower, verticalMovePower, turnPower, maxSpeed);
+            }
+            else {
+                telemetry.addLine("===== LAST SAVED SAVESTATE =====");
+                telemetry.addLine("Currently idling!");
+                telemetry.addData("Max Hesitation Time: ", MAX_HESITATION_TIME);
+            }
         }
         telemetry.update();
     }
 
     public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw) {
-        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime(), maxSpeed, turnPow);
+        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow);
         states.add(latest);
 
         telemetry.addLine("===== LAST SAVED SAVESTATE =====");
@@ -157,15 +181,6 @@ public class Recorder extends OpMode {
         objectOutputStream.close();
         telemetry.addLine("Successfully saved to:\"" + PATH+"\"");
         telemetry.update();
-    }
-
-    String SERIALIZED_FINAL_STATES = "";
-    private void createSerializedStates() {
-        SERIALIZED_FINAL_STATES =
-                states.stream().map(s->String.format(
-                        "%s:%s:%s:%s",
-                        s.t, s.mX, s.mY, s.yaw
-                )).collect(Collectors.joining("|"));
     }
 
     public static String formatIOException(IOException e) {
