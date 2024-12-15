@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.xendy;
 
+import static org.firstinspires.ftc.teamcode.xendy.AutonomousSwitcherHelpers.loadStatesFromFile;
+
 import android.os.Environment;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
@@ -27,9 +30,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@TeleOp(name="XendyNotSimpleAutonomous")
+@Autonomous(name="XendyNotSimpleAutonomous")
 public class XendyNotSimpleAutonomous extends OpMode {
-    private final String LOAD_FROM_PATH = "recorded";
+    public String pathName = "";
 
     private XDriveChassis chassis;
     private YawPitchRollAngles orientation;
@@ -44,28 +47,26 @@ public class XendyNotSimpleAutonomous extends OpMode {
     @Override
     public void init() {
         chassis = new XDriveChassis(this);
-        if (!LOAD_FROM_PATH.isEmpty()) {
-            try {
-                loadStatesFromFile(LOAD_FROM_PATH);
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+        AutonomousSwitcherHelpers.update();
+        String binding = AutonomousSwitcherHelpers.selected;
+        try {
+            PathData data = loadStatesFromFile(binding);
+            states = data.states;
+            pathName = data.name;
             resetRuntime();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            STOP = true;
         }
     }
 
-    public void loadStatesFromFile(String name) throws IOException, ClassNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(PATH + name + ".robotStates");
-        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-        states = (ArrayList<SaveState>) objectInputStream.readObject();
-        objectInputStream.close();
-    }
     boolean STOP = false;
     @Override
     public void loop() {
         if (STOP) {
             return;
         }
+        telemetry.addData("Running path", pathName);
         orientation = chassis.imu.getRobotYawPitchRollAngles();
         yaw = orientation.getYaw();
         yawRad = orientation.getYaw(AngleUnit.RADIANS);

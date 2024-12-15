@@ -2,10 +2,14 @@ package org.firstinspires.ftc.teamcode.xendy;
 
 import android.os.Environment;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.Numbers;
@@ -27,13 +31,16 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Config
 @TeleOp(name="XendyRecorder")
 public class Recorder extends OpMode {
-    private final String LOAD_FROM_PATH = "";
-    private final double MAX_HESITATION_TIME = 0.5;
+    public static String pathName = "";
+    public String binding = "";
+    private final double MAX_HESITATION_TIME = 0.3;
 
     private XDriveChassis chassis;
     private double maxSpeed = 50;
+    private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
     private YawPitchRollAngles orientation;
     private double yaw;
@@ -52,9 +59,12 @@ public class Recorder extends OpMode {
 
     ArrayList<SaveState> states = new ArrayList<>();
     int index = 0;
+
     @Override
     public void init() {
+        telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
         chassis = new XDriveChassis(this);
+        pathName = "";
     }
 
     boolean DONE_RECORDING = false;
@@ -68,18 +78,35 @@ public class Recorder extends OpMode {
     public void loop() {
         controller1.update(gamepad1);
         controller2.update(gamepad2);
-        if (controller1.pressed(Controller.Button.Start) && LOAD_FROM_PATH.isEmpty()) {
+        if (controller1.pressed(Controller.Button.Start)) {
             DONE_RECORDING = true;
         }
         if (DONE_RECORDING) {
             if (!SENT_TO_TELEMETRY) {
-                try {
-                    serializeStates("recorded");
-                } catch (IOException e) {
-                    telemetry.addLine(formatIOException(e));
-                    telemetry.update();
+                if (pathName.isEmpty()) {
+                    telemetry.addLine("Please write and save the name in the dashboard");
                 }
-                SENT_TO_TELEMETRY = true;
+                else if (binding.isEmpty()) {
+                    telemetry.addLine("Please choose a binding for this path.");
+                    telemetry.addLine("(A/B/Y/X, Dpad)");
+                    if (controller1.pressed(Controller.Button.A)) binding = "G1A";
+                    else if (controller1.pressed(Controller.Button.B)) binding = "G1B";
+                    else if (controller1.pressed(Controller.Button.X)) binding = "G1X";
+                    else if (controller1.pressed(Controller.Button.Y)) binding = "G1Y";
+                    else if (controller1.pressed(Controller.Button.DPadUp)) binding = "G1DpadUp";
+                    else if (controller1.pressed(Controller.Button.DPadDown)) binding = "G1DpadDown";
+                    else if (controller1.pressed(Controller.Button.DPadRight)) binding = "G1DpadRight";
+                    else if (controller1.pressed(Controller.Button.DPadLeft)) binding = "G1DpadLeft";
+                }
+                else {
+                    try {
+                        serializeStates(binding);
+                    } catch (IOException e) {
+                        telemetry.addLine(formatIOException(e));
+                        telemetry.update();
+                    }
+                    SENT_TO_TELEMETRY = true;
+                }
             }
             chassis.leftBackMotor.setVelocity(0);
             chassis.leftFrontMotor.setVelocity(0);
@@ -97,6 +124,8 @@ public class Recorder extends OpMode {
         float moveXInput = -controller1.axis(Controller.Axis.LeftStickX, PowerCurve.Quadratic);
         float moveYInput = controller1.axis(Controller.Axis.LeftStickY, PowerCurve.Quadratic);
         float rotationInput = controller1.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
+
+
 
         if ((moveXInput != 0 || moveYInput != 0 || rotationInput != 0) && !RECORDING) {
             RECORDING = true;
@@ -136,33 +165,35 @@ public class Recorder extends OpMode {
         else turnPower = -Numbers.turnCorrectionSpeed(normalizedYaw, targetRotation);
 
 
-        double verticalMovePower = moveXInput * Math.sin(yawRad) + moveYInput * Math.cos(yawRad);
-        double horizontalMovePower = moveXInput * Math.cos(yawRad) - moveYInput * Math.sin(yawRad);
+        double verticalMovePower = moveXInput * Math.sin(-yawRad) + moveYInput * Math.cos(-yawRad);
+        double horizontalMovePower = moveXInput * Math.cos(-yawRad) - moveYInput * Math.sin(-yawRad);
         if (RECORDING) {
             double currentTime = getRuntime() - idleRemoveTime;
             telemetry.addData("Remaining time:", 28-currentTime);
-            if (28-currentTime <= 0) {
+            if (29.5-currentTime <= 0) {
                 DONE_RECORDING = true;
             }
             if (!idling) {
-                saveRobotState(horizontalMovePower, verticalMovePower, rotationInput, rotationInput != 0 ? normalizedYaw : targetRotation);
+                saveRobotState(horizontalMovePower, verticalMovePower, rotationInput, rotationInput != 0 ? normalizedYaw : targetRotation, 0, 0, 0, 0);
                 chassis.move(horizontalMovePower, verticalMovePower, turnPower, maxSpeed);
             }
             else {
                 telemetry.addLine("===== LAST SAVED SAVESTATE =====");
                 telemetry.addLine("Currently idling!");
                 telemetry.addData("Max Hesitation Time: ", MAX_HESITATION_TIME);
+                chassis.move(0, 0, turnPower, maxSpeed);
             }
         }
         telemetry.update();
     }
 
-    public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw) {
-        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow);
+    public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw, double harmpos, double vertpos, double bucket, double claw) {
+        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow, harmpos, vertpos, bucket, claw);
         states.add(latest);
 
         telemetry.addLine("===== LAST SAVED SAVESTATE =====");
         telemetry.addData("time", latest.t);
+
         telemetry.addData("mX", latest.mX);
         telemetry.addData("mY", latest.mY);
         telemetry.addData("yaw", latest.yaw);
@@ -176,7 +207,8 @@ public class Recorder extends OpMode {
         }
         FileOutputStream fileOutputStream = new FileOutputStream(PATH + name + ".robotStates");
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        objectOutputStream.writeObject(states);
+        PathData data = new PathData(pathName, states);
+        objectOutputStream.writeObject(data);
         objectOutputStream.flush();
         objectOutputStream.close();
         telemetry.addLine("Successfully saved to:\"" + PATH+"\"");
