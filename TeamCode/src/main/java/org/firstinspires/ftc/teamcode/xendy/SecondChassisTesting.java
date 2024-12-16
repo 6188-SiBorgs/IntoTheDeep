@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.xendy;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+@Disabled
 @TeleOp(name="second chassis testing")
 public class SecondChassisTesting extends OpMode {
     XDriveChassis chassis;

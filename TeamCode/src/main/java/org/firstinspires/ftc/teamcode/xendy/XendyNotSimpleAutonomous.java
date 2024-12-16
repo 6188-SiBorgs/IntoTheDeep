@@ -1,34 +1,19 @@
 package org.firstinspires.ftc.teamcode.xendy;
 
-import static org.firstinspires.ftc.teamcode.xendy.AutonomousSwitcherHelpers.loadStatesFromFile;
+import static org.firstinspires.ftc.teamcode.xendy.AutoUtils.error;
+import static org.firstinspires.ftc.teamcode.xendy.AutoUtils.loadStatesFromFile;
 
 import android.os.Environment;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.Numbers;
-import org.firstinspires.ftc.teamcode.utils.controller.Controller;
-import org.firstinspires.ftc.teamcode.utils.controller.GameController;
-import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Autonomous(name="XendyNotSimpleAutonomous")
 public class XendyNotSimpleAutonomous extends OpMode {
@@ -46,23 +31,50 @@ public class XendyNotSimpleAutonomous extends OpMode {
     int index = 0;
     @Override
     public void init() {
+        telemetry.addLine("DO NOT START THE PROGRAM");
+        telemetry.addLine("Syncing AutoUtils...");
+        telemetry.update();
         chassis = new XDriveChassis(this);
-        AutonomousSwitcherHelpers.update();
-        String binding = AutonomousSwitcherHelpers.selected;
+        chassis.isAuto();
+        AutoUtils.update();
+        String binding = AutoUtils.selected;
+        telemetry.addLine("DO NOT START THE PROGRAM");
+        telemetry.addLine("Reading states...");
+        telemetry.update();
         try {
             PathData data = loadStatesFromFile(binding);
             states = data.states;
             pathName = data.name;
-            resetRuntime();
-        } catch (IOException | ClassNotFoundException e) {
+            telemetry.update();
+        } catch (IOException e) {
+            telemetry.addLine("===== CRITICAL ERROR =====");
+            telemetry.addLine("FAILED TO READ PATH DATA AND NAME.");
+            telemetry.addLine(AutoUtils.formatIOException(e));
+            telemetry.update();
             e.printStackTrace();
             STOP = true;
         }
+        catch (ClassNotFoundException ignore) {
+            telemetry.addLine("===== CRITICAL ERROR =====");
+            telemetry.addLine("Something has gone HORRENDOUSLY wrong.");
+            telemetry.addLine("If you see this, then uh... ur screwed !");
+            STOP = true;
+        }
+        telemetry.addLine("Ready to start!");
+        telemetry.addLine(String.format("We are about to run \"%s\" binded to \"\".", pathName, binding));
+        telemetry.addLine("If you do not want to run this auto, please run the \"SetPrimaryAutonomous\" teleop.");
+        telemetry.addLine(String.format("Found %s states.", states.size()));
+        telemetry.update();
     }
 
     boolean STOP = false;
+    boolean first = true;
     @Override
     public void loop() {
+        if (first) {
+            resetRuntime();
+            first = false;
+        }
         if (STOP) {
             return;
         }
@@ -93,10 +105,19 @@ public class XendyNotSimpleAutonomous extends OpMode {
             telemetry.addData("mY", currentState.mY);
             telemetry.addData("yaw", currentState.yaw);
             telemetry.addData("maxSpeed", currentState.mS);
+            telemetry.addData("bucketPos", currentState.bucketPosition);
+            telemetry.addData("clasPos", currentState.clawPosition);
+            telemetry.addData("horzArmPos", currentState.horizArmPosition);
+            telemetry.addData("vertArmPos", currentState.vertArmPosition);
+
             horizontalMovePower = currentState.mX;
             verticalMovePower = currentState.mY;
-            turnPower = currentState.turnPower - Numbers.turnCorrectionSpeed(normalizedYaw, currentState.yaw);
+            turnPower = currentState.turnPower + Numbers.turnCorrectionSpeed(normalizedYaw, currentState.yaw);
             maxSpeed = currentState.mS;
+            chassis.bucket.setPosition(currentState.bucketPosition);
+            chassis.claw.setPosition(currentState.clawPosition);
+//            chassis.scoringArmMotor.setTargetPosition(currentState.vertArmPosition);
+//            chassis.collectionArmMotor.setTargetPosition(currentState.horizArmPosition);
         }
         else {
             telemetry.addLine("Out of states.");

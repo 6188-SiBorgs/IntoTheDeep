@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import static org.firstinspires.ftc.teamcode.utils.controller.Controller.*;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.Numbers;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
+@Disabled
 @TeleOp(name = "Test Teleop")
 public class XendysTestTeleopPartTwo extends OpMode {
     private DriveChassis chassis;

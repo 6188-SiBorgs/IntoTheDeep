@@ -74,8 +74,30 @@ public class Recorder extends OpMode {
     double idleStartTime = -1;
     double idleRemoveTime = 0;
     boolean idling = false;
+
+    boolean initializing = true;
+    boolean firstinit = true;
+    boolean updatedAutoUtils = false;
+    private boolean clawClosed = false;
+    private boolean bucketDown = true;
+    private String overrideMessage = "";
     @Override
     public void loop() {
+//        if (firstinit) {
+//            chassis.isAuto();
+//        }
+//        if (initializing) {
+//            if (!(chassis.collectionArmMotor.isBusy() || chassis.scoringArmMotor.isBusy() || chassis.endPivotMotor.isBusy())) {
+//                initializing = false;
+//                chassis.goTele();
+//            }
+//            telemetry.addLine("Please wait as we reset arm motors...");
+//            telemetry.addData("Collection slide busy?", chassis.collectionArmMotor.isBusy());
+//            telemetry.addData("Scoring slide busy?", chassis.scoringArmMotor.isBusy());
+//            telemetry.addData("End pivot busy?", chassis.endPivotMotor.isBusy());
+//            telemetry.update();
+//            return;
+//        }
         controller1.update(gamepad1);
         controller2.update(gamepad2);
         if (controller1.pressed(Controller.Button.Start)) {
@@ -87,22 +109,79 @@ public class Recorder extends OpMode {
                     telemetry.addLine("Please write and save the name in the dashboard");
                 }
                 else if (binding.isEmpty()) {
-                    telemetry.addLine("Please choose a binding for this path.");
+                    if (!updatedAutoUtils) {
+                        updatedAutoUtils = true;
+                        AutoUtils.update();
+                    }
+                    telemetry.addLine("Please choose a binding for this path. (You can override other paths)");
                     telemetry.addLine("(A/B/Y/X, Dpad)");
-                    if (controller1.pressed(Controller.Button.A)) binding = "G1A";
-                    else if (controller1.pressed(Controller.Button.B)) binding = "G1B";
-                    else if (controller1.pressed(Controller.Button.X)) binding = "G1X";
-                    else if (controller1.pressed(Controller.Button.Y)) binding = "G1Y";
-                    else if (controller1.pressed(Controller.Button.DPadUp)) binding = "G1DpadUp";
-                    else if (controller1.pressed(Controller.Button.DPadDown)) binding = "G1DpadDown";
-                    else if (controller1.pressed(Controller.Button.DPadRight)) binding = "G1DpadRight";
-                    else if (controller1.pressed(Controller.Button.DPadLeft)) binding = "G1DpadLeft";
+                    telemetry.addLine();
+                    telemetry.addLine("Saved paths:");
+                    if (!AutoUtils.G1A.isEmpty()) telemetry.addData("A", AutoUtils.G1A);
+                    else telemetry.addData("A", "<open>");
+                    if (!AutoUtils.G1B.isEmpty()) telemetry.addData("B", AutoUtils.G1B);
+                    else telemetry.addData("B", "<open>");
+                    if (!AutoUtils.G1X.isEmpty()) telemetry.addData("X", AutoUtils.G1X);
+                    else telemetry.addData("X", "<open>");
+                    if (!AutoUtils.G1Y.isEmpty()) telemetry.addData("Y", AutoUtils.G1Y);
+                    else telemetry.addData("Y", "<open>");
+                    if (!AutoUtils.G1DpadUp.isEmpty()) telemetry.addData("DpadUp", AutoUtils.G1DpadUp);
+                    else telemetry.addData("DpadUp", "<open>");
+                    if (!AutoUtils.G1DpadLeft.isEmpty()) telemetry.addData("DpadLeft", AutoUtils.G1DpadLeft);
+                    else telemetry.addData("Dpadleft", "<open>");
+                    if (!AutoUtils.G1DpadRight.isEmpty()) telemetry.addData("DpadRight", AutoUtils.G1DpadRight);
+                    else telemetry.addData("Dpadright", "<open>");
+                    if (!AutoUtils.G1DpadDown.isEmpty()) telemetry.addData("DpadDown", AutoUtils.G1DpadDown);
+                    else telemetry.addData("Dpaddown", "<open>");
+
+                    if (controller1.pressed(Controller.Button.A)) {
+                        binding = "G1A";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1A;
+                    }
+                    else if (controller1.pressed(Controller.Button.B)) {
+                        binding = "G1B";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1B;
+                    }
+                    else if (controller1.pressed(Controller.Button.X)) {
+                        binding = "G1X";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1X;
+                    }
+                    else if (controller1.pressed(Controller.Button.Y)) {
+                        binding = "G1Y";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1Y;
+                    }
+                    else if (controller1.pressed(Controller.Button.DPadUp)) {
+                        binding = "G1DpadUp";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadUp;
+                    }
+                    else if (controller1.pressed(Controller.Button.DPadDown)) {
+                        binding = "G1DpadDown";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadDown;
+                    }
+                    else if (controller1.pressed(Controller.Button.DPadRight)) {
+                        binding = "G1DpadRight";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadRight;
+                    }
+                    else if (controller1.pressed(Controller.Button.DPadLeft)) {
+                        binding = "G1DpadLeft";
+                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadLeft;
+                    }
+                }
+                else if (!overrideMessage.isEmpty()) {
+                    telemetry.addLine(String.format("Are you sure you want to override \"%s\"?", overrideMessage));
+                    telemetry.addLine("A to confirm, B to go back.");
+                    telemetry.update();
+                    if (controller1.pressed(Controller.Button.A)) overrideMessage = "";
+                    if (controller1.pressed(Controller.Button.B)) {
+                        overrideMessage = "";
+                        binding = "";
+                    }
                 }
                 else {
                     try {
                         serializeStates(binding);
                     } catch (IOException e) {
-                        telemetry.addLine(formatIOException(e));
+                        telemetry.addLine(AutoUtils.formatIOException(e));
                         telemetry.update();
                     }
                     SENT_TO_TELEMETRY = true;
@@ -121,13 +200,31 @@ public class Recorder extends OpMode {
         yawRad = orientation.getYaw(AngleUnit.RADIANS);
         normalizedYaw = Numbers.normalizeAngle(yaw);
 
-        float moveXInput = -controller1.axis(Controller.Axis.LeftStickX, PowerCurve.Quadratic);
+        float moveXInput = controller1.axis(Controller.Axis.LeftStickX, PowerCurve.Quadratic);
         float moveYInput = controller1.axis(Controller.Axis.LeftStickY, PowerCurve.Quadratic);
         float rotationInput = controller1.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
 
+        float armXInput = -controller2.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
+        float armYInput = -controller2.axis(Controller.Axis.LeftStickY, PowerCurve.Cubic);
+        boolean clawInput = controller2.pressed(Controller.Button.A);
+        boolean bucketInput = controller2.pressed(Controller.Button.B);
+        double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
+
+        if (clawInput) {
+            chassis.claw.setPosition(clawClosed ? 1 : 0);
+            clawClosed = !clawClosed;
+        }
+
+        if (bucketInput) {
+            chassis.bucket.setPosition(bucketDown ? 1 : 0);
+            bucketDown = !bucketDown;
+        }
+
+        boolean not_inputed = moveXInput + moveYInput + rotationInput + armXInput + armYInput + pivot == 0 &&
+                            !clawInput && !bucketInput;
 
 
-        if ((moveXInput != 0 || moveYInput != 0 || rotationInput != 0) && !RECORDING) {
+        if (!not_inputed && !RECORDING) {
             RECORDING = true;
             resetRuntime();
             chassis.imu.resetYaw();
@@ -135,8 +232,12 @@ public class Recorder extends OpMode {
             yawRad = 0;
             normalizedYaw = 0;
         }
+        else {
+            telemetry.addLine("Ready to record!");
+            telemetry.addLine("Waiting for first input");
+        }
 
-        if (RECORDING && moveXInput == 0 && moveYInput == 0 && rotationInput == 0) {
+        if (RECORDING && not_inputed) {
             // idleing
             if (idleStartTime == -1) {
                 idleStartTime = getRuntime();
@@ -162,7 +263,7 @@ public class Recorder extends OpMode {
             targetRotation = normalizedYaw;
         double turnPower;
         if (rotationInput != 0) turnPower = rotationInput;
-        else turnPower = -Numbers.turnCorrectionSpeed(normalizedYaw, targetRotation);
+        else turnPower = Numbers.turnCorrectionSpeed(normalizedYaw, targetRotation);
 
 
         double verticalMovePower = moveXInput * Math.sin(-yawRad) + moveYInput * Math.cos(-yawRad);
@@ -180,20 +281,19 @@ public class Recorder extends OpMode {
             else {
                 telemetry.addLine("===== LAST SAVED SAVESTATE =====");
                 telemetry.addLine("Currently idling!");
-                telemetry.addData("Max Hesitation Time: ", MAX_HESITATION_TIME);
+                telemetry.addLine("(input any input to continue recording)");
                 chassis.move(0, 0, turnPower, maxSpeed);
             }
         }
         telemetry.update();
     }
 
-    public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw, double harmpos, double vertpos, double bucket, double claw) {
+    public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw, int harmpos, int vertpos, double bucket, double claw) {
         SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow, harmpos, vertpos, bucket, claw);
         states.add(latest);
 
         telemetry.addLine("===== LAST SAVED SAVESTATE =====");
         telemetry.addData("time", latest.t);
-
         telemetry.addData("mX", latest.mX);
         telemetry.addData("mY", latest.mY);
         telemetry.addData("yaw", latest.yaw);
@@ -211,35 +311,7 @@ public class Recorder extends OpMode {
         objectOutputStream.writeObject(data);
         objectOutputStream.flush();
         objectOutputStream.close();
-        telemetry.addLine("Successfully saved to:\"" + PATH+"\"");
+        telemetry.addLine("Successfully saved to:\"" + PATH + "\"");
         telemetry.update();
     }
-
-    public static String formatIOException(IOException e) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-
-        // Write stack trace to a String
-        e.printStackTrace(printWriter);
-        String stackTrace = stringWriter.toString();
-
-        // Extract cause
-        String cause = (e.getCause() != null) ? e.getCause().toString() : "No cause";
-
-        // Extract location (where it happened)
-        StackTraceElement[] stackTraceElements = e.getStackTrace();
-        String location = stackTraceElements.length > 0
-                ? stackTraceElements[0].toString()
-                : "No stack trace available";
-
-        // Format output
-        return String.format(
-                "Exception: %s%nCause: %s%nLocation: %s%nStack Trace:%n%s",
-                e.toString(),
-                cause,
-                location,
-                stackTrace
-        );
-    }
-
 }

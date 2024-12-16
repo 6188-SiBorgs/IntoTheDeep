@@ -22,6 +22,11 @@ public class XDriveChassis {
     public static final double WHEEL_CIRCUMFERENCE = 23.94; // In CM
     public static final float HORIZONTAL_BALANCE = 1.1f;
 
+    public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor;
+    public Servo bucket;
+    public Servo claw;
+
+
     public IMU imu;
 
     public XDriveChassis(OpMode opMode) {
@@ -43,15 +48,21 @@ public class XDriveChassis {
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        collectionArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "horizontalSlide");
+        scoringArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "verticalSlide");
+        endPivotMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "endPivotMotor");
 
-        // Instantiate the imu
-//        imu = hardwareMap.get(IMU.class, "imu");
-//        imu.initialize(new IMU.Parameters(
-//                new RevHubOrientationOnRobot(
-//                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
-//                        RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
-//                ))
-//        );
+        scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        claw = hardwareMap.get(Servo.class, "intakeEffector");
+        bucket = hardwareMap.get(Servo.class, "bucket");
+        imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
@@ -59,6 +70,19 @@ public class XDriveChassis {
                 ))
         );
         imu.resetYaw();
+    }
+
+    public void isAuto() {
+    }
+
+    public void goTele() {
+        scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void move(double mx, double my, double r, double maxSpeed) {

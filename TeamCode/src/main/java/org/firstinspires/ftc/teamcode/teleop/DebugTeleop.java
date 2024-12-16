@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -7,6 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.DriveChassis;
 
 
+@Disabled
 @TeleOp(name = "DebugTeleop")
 public class DebugTeleop extends OpMode {
     private DriveChassis chassis;

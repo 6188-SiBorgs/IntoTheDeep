@@ -63,9 +63,6 @@ public class DriveChassis {
 
         claw = hardwareMap.get(Servo.class, "intakeEffector");
         bucket = hardwareMap.get(Servo.class, "bucket");
-
-        bucket.setPosition(0);
-
         // Instantiate the imu
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(
