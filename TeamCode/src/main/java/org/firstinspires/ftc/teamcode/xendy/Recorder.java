@@ -289,7 +289,7 @@ public class Recorder extends OpMode {
     }
 
     public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw, int harmpos, int vertpos, double bucket, double claw) {
-        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow, harmpos, vertpos, bucket, claw);
+        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow, harmpos, vertpos, bucket, claw, 0);
         states.add(latest);
 
         telemetry.addLine("===== LAST SAVED SAVESTATE =====");

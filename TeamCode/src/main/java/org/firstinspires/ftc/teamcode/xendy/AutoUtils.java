@@ -26,14 +26,24 @@ public class AutoUtils {
     public static String selected = "";
     public static String error = "";
     public static String getSelectedName() {
-        if (selected.equals("G1A")) return G1A;
-        if (selected.equals("G1B")) return G1B;
-        if (selected.equals("G1X")) return G1X;
-        if (selected.equals("G1Y")) return G1Y;
-        if (selected.equals("G1DpadDown")) return G1DpadDown;
-        if (selected.equals("G1DpadLeft")) return G1DpadLeft;
-        if (selected.equals("G1DpadRight")) return G1DpadRight;
-        if (selected.equals("G1DpadUp")) return G1DpadUp;
+        switch (selected) {
+            case "G1A":
+                return G1A;
+            case "G1B":
+                return G1B;
+            case "G1X":
+                return G1X;
+            case "G1Y":
+                return G1Y;
+            case "G1DpadDown":
+                return G1DpadDown;
+            case "G1DpadLeft":
+                return G1DpadLeft;
+            case "G1DpadRight":
+                return G1DpadRight;
+            case "G1DpadUp":
+                return G1DpadUp;
+        }
         return "";
     }
 
@@ -127,7 +137,7 @@ public class AutoUtils {
         // Format output
         return String.format(
                 "Exception: %s%nCause: %s%nLocation: %s%nStack Trace:%n%s",
-                e.toString(),
+                e,
                 cause,
                 location,
                 stackTrace
