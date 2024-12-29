@@ -7,10 +7,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @Disabled
 @TeleOp(name="second chassis testing")
 public class SecondChassisTesting extends OpMode {
-    XDriveChassis chassis;
+    DriveChassisX chassis;
     @Override
     public void init() {
-        chassis = new XDriveChassis(this);
+        chassis = new DriveChassisX(this);
     }
 
     @Override

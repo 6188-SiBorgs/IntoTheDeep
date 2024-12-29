@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.xendy;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 /**
  * A class with all of the common data about our robot chassis so we can reuse it in multiple OpModes without reusing too much code
  */
-public class XDriveChassis {
+public class DriveChassisX {
     // Initialize our motors
     public DcMotorEx leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor;
     // Info about our robots design
@@ -29,7 +28,7 @@ public class XDriveChassis {
 
     public IMU imu;
 
-    public XDriveChassis(OpMode opMode) {
+    public DriveChassisX(OpMode opMode) {
         HardwareMap hardwareMap = opMode.hardwareMap;
 
         // Instantiate each motor

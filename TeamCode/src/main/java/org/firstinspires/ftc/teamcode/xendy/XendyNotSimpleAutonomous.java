@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.xendy;
 
-import static org.firstinspires.ftc.teamcode.xendy.AutoUtils.error;
 import static org.firstinspires.ftc.teamcode.xendy.AutoUtils.loadStatesFromFile;
 
 import android.os.Environment;
@@ -19,22 +18,22 @@ import java.util.ArrayList;
 public class XendyNotSimpleAutonomous extends OpMode {
     public String pathName = "";
 
-    private XDriveChassis chassis;
+    private DriveChassisX chassis;
     private YawPitchRollAngles orientation;
     private double yaw;
     private double yawRad;
     private double normalizedYaw;
     public static final String PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/XendysPessimisticAutonomous/";
 
-
     ArrayList<SaveState> states = new ArrayList<>();
     int index = 0;
+
     @Override
     public void init() {
         telemetry.addLine("DO NOT START THE PROGRAM");
         telemetry.addLine("Syncing AutoUtils...");
         telemetry.update();
-        chassis = new XDriveChassis(this);
+        chassis = new DriveChassisX(this);
         chassis.isAuto();
         AutoUtils.update();
         String binding = AutoUtils.selected;

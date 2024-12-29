@@ -4,8 +4,12 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.utils.Numbers;
 
+import java.util.HashSet;
+
 public class Controller {
     protected final Gamepad currentGamepad = new Gamepad();
+    protected final HashSet<Button> pressedButtons = new HashSet<>();
+    private Button mostRecentlyPressedButton = null;
 
     private float stickDeadzone = 0.05f;
 
@@ -21,6 +25,7 @@ public class Controller {
         DPadRight,
         DPadUp,
         DPadDown,
+
         // XBOX / Logitech
         A,
         B,
@@ -177,6 +182,14 @@ public class Controller {
 
     public void update(Gamepad gamepad) {
         currentGamepad.copy(gamepad);
+        for (Button button : Button.values()) {
+            if (button(button)) {
+                pressedButtons.add(button);
+                mostRecentlyPressedButton = button;
+            } else {
+                pressedButtons.remove(button);
+            }
+        }
     }
 
     public float getStickDeadzone() {
@@ -185,5 +198,9 @@ public class Controller {
 
     public void setStickDeadzone(float stickDeadzone) {
         this.stickDeadzone = stickDeadzone;
+    }
+
+    public Button getMostRecentlyPressedButton() {
+        return mostRecentlyPressedButton;
     }
 }

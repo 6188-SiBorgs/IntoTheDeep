@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.Numbers;
@@ -18,27 +17,19 @@ import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Config
-@TeleOp(name="XendyRecorder")
+@TeleOp(name="Autonomous Recorder")
 public class Recorder extends OpMode {
     public static String pathName = "";
     public String binding = "";
     private final double MAX_HESITATION_TIME = 0.3;
 
-    private XDriveChassis chassis;
+    private DriveChassisX chassis;
     private double maxSpeed = 50;
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
 
@@ -50,39 +41,43 @@ public class Recorder extends OpMode {
     private double targetRotation;
 
     public static final String PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/XendysPessimisticAutonomous/";
+
     // Gamepad States
     private final GameController controller1 = new GameController();
     private final GameController controller2 = new GameController();
 
     private final double SPEED_CHANGE_PER_PRESS = 5;
 
-
-    ArrayList<SaveState> states = new ArrayList<>();
-    int index = 0;
+    private ArrayList<SaveState> states = new ArrayList<>();
+    private int index = 0;
 
     @Override
     public void init() {
         telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
-        chassis = new XDriveChassis(this);
+        chassis = new DriveChassisX(this);
         pathName = "";
     }
 
-    boolean DONE_RECORDING = false;
-    boolean SENT_TO_TELEMETRY = false;
-    boolean RECORDING = false;
+    private boolean DONE_RECORDING = false;
+    private boolean SENT_TO_TELEMETRY = false;
+    private boolean RECORDING = false;
 
-    double idleStartTime = -1;
-    double idleRemoveTime = 0;
-    boolean idling = false;
+    private double idleStartTime = -1;
+    private double idleRemoveTime = 0;
+    private boolean idling = false;
 
-    boolean initializing = true;
-    boolean firstinit = true;
-    boolean updatedAutoUtils = false;
+    // For arm, will be used
+    private boolean initializing = true;
+    private boolean firstinit = true;
+
+    private boolean updatedAutoUtils = false;
     private boolean clawClosed = false;
     private boolean bucketDown = true;
     private String overrideMessage = "";
+
     @Override
     public void loop() {
+        // For arm, will be used
 //        if (firstinit) {
 //            chassis.isAuto();
 //        }
@@ -98,6 +93,7 @@ public class Recorder extends OpMode {
 //            telemetry.update();
 //            return;
 //        }
+        // TODO: Potentially use a state machine to reduce if/else nesting?
         controller1.update(gamepad1);
         controller2.update(gamepad2);
         if (controller1.pressed(Controller.Button.Start)) {
@@ -134,37 +130,40 @@ public class Recorder extends OpMode {
                     if (!AutoUtils.G1DpadDown.isEmpty()) telemetry.addData("DpadDown", AutoUtils.G1DpadDown);
                     else telemetry.addData("Dpaddown", "<open>");
 
-                    if (controller1.pressed(Controller.Button.A)) {
-                        binding = "G1A";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1A;
-                    }
-                    else if (controller1.pressed(Controller.Button.B)) {
-                        binding = "G1B";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1B;
-                    }
-                    else if (controller1.pressed(Controller.Button.X)) {
-                        binding = "G1X";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1X;
-                    }
-                    else if (controller1.pressed(Controller.Button.Y)) {
-                        binding = "G1Y";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1Y;
-                    }
-                    else if (controller1.pressed(Controller.Button.DPadUp)) {
-                        binding = "G1DpadUp";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadUp;
-                    }
-                    else if (controller1.pressed(Controller.Button.DPadDown)) {
-                        binding = "G1DpadDown";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadDown;
-                    }
-                    else if (controller1.pressed(Controller.Button.DPadRight)) {
-                        binding = "G1DpadRight";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadRight;
-                    }
-                    else if (controller1.pressed(Controller.Button.DPadLeft)) {
-                        binding = "G1DpadLeft";
-                        if (!AutoUtils.G1A.isEmpty()) overrideMessage = AutoUtils.G1DpadLeft;
+                    Controller.Button button = controller1.getMostRecentlyPressedButton();
+                    switch (button) {
+                        case A:
+                            binding = "G1A";
+                            overrideMessage = AutoUtils.G1A;
+                            break;
+                        case B:
+                            binding = "G1B";
+                            overrideMessage = AutoUtils.G1B;
+                            break;
+                        case X:
+                            binding = "G1X";
+                            overrideMessage = AutoUtils.G1X;
+                            break;
+                        case Y:
+                            binding = "G1Y";
+                            overrideMessage = AutoUtils.G1Y;
+                            break;
+                        case DPadUp:
+                            binding = "G1DpadUp";
+                            overrideMessage = AutoUtils.G1DpadUp;
+                            break;
+                        case DPadDown:
+                            binding = "G1DpadDown";
+                            overrideMessage = AutoUtils.G1DpadDown;
+                            break;
+                        case DPadLeft:
+                            binding = "G1DpadLeft";
+                            overrideMessage = AutoUtils.G1DpadLeft;
+                            break;
+                        case DPadRight:
+                            binding = "G1DpadRight";
+                            overrideMessage = AutoUtils.G1DpadRight;
+                            break;
                     }
                 }
                 else if (!overrideMessage.isEmpty()) {
@@ -298,6 +297,7 @@ public class Recorder extends OpMode {
         telemetry.addData("mY", latest.mY);
         telemetry.addData("yaw", latest.yaw);
     }
+
     private void serializeStates(String name) throws IOException {
         File directory = new File(PATH);
         if (!directory.exists()) {

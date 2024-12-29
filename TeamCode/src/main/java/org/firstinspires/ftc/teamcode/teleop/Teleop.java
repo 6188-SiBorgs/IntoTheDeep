@@ -4,7 +4,6 @@ import static org.firstinspires.ftc.teamcode.utils.controller.Controller.*;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -28,8 +27,6 @@ public class Teleop extends OpMode {
 
     private double targetRotation;
 
-
-
     // Gamepad States
     private final GameController controller1 = new GameController();
     private final GameController controller2 = new GameController();
@@ -40,6 +37,7 @@ public class Teleop extends OpMode {
     public void init() {
         chassis = new DriveChassis(this);
     }
+
     private boolean clawClosed = false;
     private boolean bucketDown = true;
     @Override
@@ -126,9 +124,10 @@ public class Teleop extends OpMode {
         telemetry.addData("Rotation Input", rotationInput);
         telemetry.addData("Turn Power", turnPower);
 
-
+        // Find maximum speed, to scale all of the motor powers to [-1, 1]
         double denominator = Math.max(Math.abs(verticalMovePower) + Math.abs(horizontalMovePower) + Math.abs(turnPower), 1);
 
+        // Scale motor powers to [-1, 1]
         double leftFPower = (verticalMovePower + horizontalMovePower + turnPower) / denominator;
         double leftBPower = (verticalMovePower - horizontalMovePower + turnPower) / denominator;
         double rightFPower = (verticalMovePower - horizontalMovePower - turnPower) / denominator;
