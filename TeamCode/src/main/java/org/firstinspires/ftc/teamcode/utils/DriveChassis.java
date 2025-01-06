@@ -30,6 +30,10 @@ public class DriveChassis {
     public IMU imu;
 
     public DriveChassis(OpMode opMode) {
+        this(opMode, true);
+    }
+
+    public DriveChassis(OpMode opMode, boolean includeArms) {
         HardwareMap hardwareMap = opMode.hardwareMap;
 
         // Instantiate each motor
@@ -48,21 +52,24 @@ public class DriveChassis {
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // Other motors (Arms, end effectors, etc)
-        collectionArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "horizontalSlide");
-        scoringArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "verticalSlide");
-        endPivotMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "endPivotMotor");
+        if (includeArms) {
+            // Other motors (Arms, end effectors, etc)
+            collectionArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "horizontalSlide");
+            scoringArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "verticalSlide");
+            endPivotMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "endPivotMotor");
 
-        scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        claw = hardwareMap.get(Servo.class, "intakeEffector");
-        bucket = hardwareMap.get(Servo.class, "bucket");
+            claw = hardwareMap.get(Servo.class, "intakeEffector");
+            bucket = hardwareMap.get(Servo.class, "bucket");
+        }
+
         // Instantiate the imu
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(

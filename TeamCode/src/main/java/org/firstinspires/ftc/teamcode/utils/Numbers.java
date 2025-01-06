@@ -106,4 +106,15 @@ public class Numbers {
     public static double querp(double a, double b, double t) {
         return lerp(a, b, Math.abs(t) * t);
     }
+
+    public static double wrapAngle(double radians) {
+        while (radians > Math.PI) {
+            radians -= 2 * Math.PI;
+        }
+
+        while (radians < -Math.PI) {
+            radians += 2 * Math.PI;
+        }
+        return radians;
+    }
 }
