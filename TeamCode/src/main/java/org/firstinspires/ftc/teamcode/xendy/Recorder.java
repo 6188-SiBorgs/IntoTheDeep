@@ -77,22 +77,29 @@ public class Recorder extends OpMode {
 
     @Override
     public void loop() {
-        // For arm, will be used
-//        if (firstinit) {
-//            chassis.isAuto();
-//        }
-//        if (initializing) {
-//            if (!(chassis.collectionArmMotor.isBusy() || chassis.scoringArmMotor.isBusy() || chassis.endPivotMotor.isBusy())) {
-//                initializing = false;
-//                chassis.goTele();
-//            }
-//            telemetry.addLine("Please wait as we reset arm motors...");
-//            telemetry.addData("Collection slide busy?", chassis.collectionArmMotor.isBusy());
-//            telemetry.addData("Scoring slide busy?", chassis.scoringArmMotor.isBusy());
-//            telemetry.addData("End pivot busy?", chassis.endPivotMotor.isBusy());
-//            telemetry.update();
-//            return;
-//        }
+        if (firstinit) {
+            chassis.isAuto();
+            chassis.scoringArmMotor.setVelocity(2000);
+            chassis.endPivotMotor.setVelocity(2000);
+            chassis.collectionArmMotor.setVelocity(2000);
+        }
+        if (initializing) {
+            if (!(chassis.collectionArmMotor.isBusy() || chassis.scoringArmMotor.isBusy() || chassis.endPivotMotor.isBusy())) {
+                initializing = false;
+                chassis.scoringArmMotor.setVelocity(0);
+                chassis.endPivotMotor.setVelocity(0);
+                chassis.collectionArmMotor.setVelocity(0);
+                chassis.goTele();
+            }
+            else {
+                telemetry.addLine("Please wait as we reset arm motors...");
+                telemetry.addData("Collection slide busy?", chassis.collectionArmMotor.isBusy());
+                telemetry.addData("Scoring slide busy?", chassis.scoringArmMotor.isBusy());
+                telemetry.addData("End pivot busy?", chassis.endPivotMotor.isBusy());
+                telemetry.update();
+                return;
+            }
+        }
         // TODO: Potentially use a state machine to reduce if/else nesting?
         controller1.update(gamepad1);
         controller2.update(gamepad2);
@@ -274,7 +281,8 @@ public class Recorder extends OpMode {
                 DONE_RECORDING = true;
             }
             if (!idling) {
-                saveRobotState(horizontalMovePower, verticalMovePower, rotationInput, rotationInput != 0 ? normalizedYaw : targetRotation, 0, 0, 0, 0);
+                saveRobotState(horizontalMovePower, verticalMovePower, rotationInput, rotationInput != 0 ? normalizedYaw : targetRotation,
+                        chassis.collectionArmMotor.getCurrentPosition(), chassis.scoringArmMotor.getCurrentPosition(), chassis.bucket.getPosition(), chassis.claw.getPosition());
                 chassis.move(horizontalMovePower, verticalMovePower, turnPower, maxSpeed);
             }
             else {

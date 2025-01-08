@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -9,6 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.DriveChassis;
 import org.firstinspires.ftc.teamcode.utils.Numbers;
 
+@TeleOp(name = "PID Testing")
 public class PIDTest extends LinearOpMode {
 
     private DriveChassis chassis;
@@ -34,6 +36,24 @@ public class PIDTest extends LinearOpMode {
         while (opModeIsActive()) {
             orientation = chassis.imu.getRobotYawPitchRollAngles();
             yaw = orientation.getYaw(AngleUnit.RADIANS);
+
+            if (gamepad1.dpad_up) {
+                Kp += 0.1;
+            } else if (gamepad1.dpad_down) {
+                Kp -= 0.1;
+            }
+
+            if (gamepad1.dpad_right) {
+                Ki += 0.1;
+            } else if (gamepad1.dpad_left) {
+                Ki -= 0.1;
+            }
+
+            if (gamepad1.right_bumper) {
+                Kd += 0.1;
+            } else if (gamepad1.left_bumper) {
+                Kd -= 0.1;
+            }
 
             double turnPower = PIDControl(targetAngle, yaw);
             chassis.leftFrontMotor.setPower(turnPower);

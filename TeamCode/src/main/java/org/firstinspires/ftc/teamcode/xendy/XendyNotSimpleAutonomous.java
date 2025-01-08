@@ -115,8 +115,9 @@ public class XendyNotSimpleAutonomous extends OpMode {
             maxSpeed = currentState.mS;
             chassis.bucket.setPosition(currentState.bucketPosition);
             chassis.claw.setPosition(currentState.clawPosition);
-//            chassis.scoringArmMotor.setTargetPosition(currentState.vertArmPosition);
-//            chassis.collectionArmMotor.setTargetPosition(currentState.horizArmPosition);
+            chassis.scoringArmMotor.setTargetPosition(currentState.vertArmPosition);
+            chassis.collectionArmMotor.setTargetPosition(currentState.horizArmPosition);
+            chassis.scoringArmMotor.setVelocity(20);
         }
         else {
             telemetry.addLine("Out of states.");
