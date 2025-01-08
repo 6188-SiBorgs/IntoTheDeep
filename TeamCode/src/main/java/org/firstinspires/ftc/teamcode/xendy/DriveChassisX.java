@@ -71,7 +71,21 @@ public class DriveChassisX {
         imu.resetYaw();
     }
 
+    // 0: down
+    // 1: up
+    private boolean verticalArmCalibrated = false;
     public void isAuto() {
+        collectionArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        endPivotMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        collectionArmMotor.setTargetPosition(0);
+        endPivotMotor.setTargetPosition(0);
+        collectionArmMotor.setVelocity(2000);
+        endPivotMotor.setVelocity(2000);
+    }
+
+    public void isVerticalArmBusy() {
+        if (verticalArmCalibrated) return false;
+        
     }
 
     public void goTele() {
