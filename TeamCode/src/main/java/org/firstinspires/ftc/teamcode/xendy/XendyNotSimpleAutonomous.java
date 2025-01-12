@@ -35,6 +35,9 @@ public class XendyNotSimpleAutonomous extends OpMode {
         telemetry.update();
         chassis = new DriveChassisX(this);
         chassis.isAuto();
+        chassis.endPivotMotor.setVelocity(150);
+        chassis.scoringArmMotor.setVelocity(910);
+        chassis.collectionArmMotor.setVelocity(500);
         AutoUtils.update();
         String binding = AutoUtils.selected;
         telemetry.addLine("DO NOT START THE PROGRAM");
@@ -105,9 +108,10 @@ public class XendyNotSimpleAutonomous extends OpMode {
             telemetry.addData("yaw", currentState.yaw);
             telemetry.addData("maxSpeed", currentState.mS);
             telemetry.addData("bucketPos", currentState.bucketPosition);
-            telemetry.addData("clasPos", currentState.clawPosition);
+            telemetry.addData("clawPos", currentState.clawPosition);
             telemetry.addData("horzArmPos", currentState.horizArmPosition);
             telemetry.addData("vertArmPos", currentState.vertArmPosition);
+            telemetry.addData("pivotPos", currentState.pivotPosition);
 
             horizontalMovePower = currentState.mX;
             verticalMovePower = currentState.mY;
@@ -117,6 +121,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
             chassis.claw.setPosition(currentState.clawPosition);
             chassis.scoringArmMotor.setTargetPosition(currentState.vertArmPosition);
             chassis.collectionArmMotor.setTargetPosition(currentState.horizArmPosition);
+            chassis.endPivotMotor.setTargetPosition(currentState.pivotPosition);
             chassis.scoringArmMotor.setVelocity(20);
         }
         else {

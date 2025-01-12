@@ -69,7 +69,12 @@ public class Teleop extends OpMode {
             chassis.collectionArmMotor.setVelocity(armXInput * 500);
         }
 
-        chassis.scoringArmMotor.setVelocity(armYInput * 1250);
+        if (chassis.scoringArmMotor.getCurrentPosition() >= 0 && armYInput > 0 || chassis.scoringArmMotor.getCurrentPosition() <= -3100 && armYInput < 0) {
+            chassis.scoringArmMotor.setVelocity(0);
+            telemetry.addLine("======== ALERT ========");
+            telemetry.addLine("LIMIT REACHED FOR SCORING ARM");
+        }
+        else chassis.scoringArmMotor.setVelocity(armYInput * 1150);
         double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
 
         if (chassis.endPivotMotor.getCurrentPosition() >= 0 && pivot > 0 || chassis.endPivotMotor.getCurrentPosition() <= -240 && pivot < 0) {

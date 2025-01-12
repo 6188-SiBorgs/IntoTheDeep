@@ -13,13 +13,12 @@ import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 /**
  * This is the class to test the Arm of our robot.
  * */
-@Disabled
 @TeleOp(name = "ArmTesting", group = "Test Programs")
 public class ArmTesting extends OpMode {
     private final GameController controller2 = new GameController();
 
     private final int GEAR_RATIO = 60;
-    private double armVelocity = 8;
+    private double armVelocity = 1;
 
     private DcMotorEx scoringArmMotor;
     private DcMotorEx collectionArmMotor, endPivotMotor;
@@ -51,7 +50,7 @@ public class ArmTesting extends OpMode {
     public void loop() {
         controller2.update(gamepad2);
 
-        float yInput = controller2.axis(Controller.Axis.LeftStickY);
+        float yInput = -controller2.axis(Controller.Axis.LeftStickY);
         float xInput = controller2.axis(Controller.Axis.RightStickX);
 
         if (collectionArmMotor.getCurrentPosition() >= 0 && xInput > 0 || collectionArmMotor.getCurrentPosition() <= -2150 && xInput < 0) {
@@ -59,8 +58,11 @@ public class ArmTesting extends OpMode {
             telemetry.addLine("LIMIT REACHED FOR COLLECTION ARM");
         }
         else collectionArmMotor.setVelocity(xInput * 500);
-
-        scoringArmMotor.setPower(yInput * armVelocity * GEAR_RATIO);
+        if (scoringArmMotor.getCurrentPosition() >= 0 && yInput > 0 || scoringArmMotor.getCurrentPosition() <= -3100 && yInput < 0) {
+            scoringArmMotor.setVelocity(0);
+            telemetry.addLine("LIMIT REACHED FOR SCORING ARM");
+        }
+        else scoringArmMotor.setVelocity(yInput * 1600);
 
         if (controller2.pressed(Controller.Button.B)) {
             collectionArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

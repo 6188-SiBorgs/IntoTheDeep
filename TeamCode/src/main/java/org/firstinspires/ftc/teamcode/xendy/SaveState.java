@@ -9,11 +9,12 @@ public class SaveState implements Serializable {
     // Horizontal Arm
     public int horizArmPosition;
     public int vertArmPosition;
+    public int pivotPosition;
     public double clawPosition;
     public double bucketPosition;
 
     public double v;
-    SaveState(double horzPow, double vertPow, double cYaw, double time, double maxSpeed, double turnPow, int harmpos, int varmpos, double bucket, double claw, double voltage) {
+    SaveState(double horzPow, double vertPow, double cYaw, double time, double maxSpeed, double turnPow, int harmpos, int varmpos, double bucket, double claw, double voltage, int pivot) {
         t = time;
         mX = horzPow;
         mY = vertPow;
@@ -24,6 +25,7 @@ public class SaveState implements Serializable {
         horizArmPosition = harmpos;
         vertArmPosition = varmpos;
         bucketPosition = bucket;
+        pivotPosition = pivot;
         clawPosition = claw;
     }
 }
