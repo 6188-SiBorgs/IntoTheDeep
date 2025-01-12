@@ -8,6 +8,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -81,13 +82,17 @@ public class Recorder extends OpMode {
     public void loop() {
         if (firstinit) {
             chassis.isAuto();
-            chassis.scoringArmMotor.setVelocity(2000);
-            chassis.endPivotMotor.setVelocity(2000);
-            chassis.collectionArmMotor.setVelocity(2000);
+            chassis.endPivotMotor.setVelocity(150);
+            chassis.scoringArmMotor.setVelocity(910);
+            chassis.collectionArmMotor.setVelocity(500);
+
+            chassis.ascention.setTargetPosition(0);
+            chassis.ascention.setPower(1);
+            chassis.ascention.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             firstinit = false;
         }
         if (initializing) {
-            if (!(chassis.collectionArmMotor.isBusy() || chassis.scoringArmMotor.isBusy() || chassis.endPivotMotor.isBusy())) {
+            if (!(chassis.collectionArmMotor.isBusy() || chassis.scoringArmMotor.isBusy() || chassis.endPivotMotor.isBusy() || chassis.ascention.isBusy())) {
                 initializing = false;
                 chassis.scoringArmMotor.setVelocity(0);
                 chassis.endPivotMotor.setVelocity(0);
@@ -99,10 +104,15 @@ public class Recorder extends OpMode {
                 telemetry.addData("Collection slide busy?", chassis.collectionArmMotor.isBusy());
                 telemetry.addData("Scoring slide busy?", chassis.scoringArmMotor.isBusy());
                 telemetry.addData("End pivot busy?", chassis.endPivotMotor.isBusy());
+                telemetry.addData("Ascesntion busy?", chassis.ascention.isBusy());
                 telemetry.update();
                 return;
             }
         }
+        if (gamepad2.a)
+            chassis.ascention.setTargetPosition(-2680);
+        telemetry.addData("ascensionPosition", chassis.ascention.getCurrentPosition());
+        telemetry.addData("ascensionTarget", chassis.ascention.getTargetPosition());
         // TODO: Potentially use a state machine to reduce if/else nesting?
         controller1.update(gamepad1);
         controller2.update(gamepad2);
@@ -213,12 +223,15 @@ public class Recorder extends OpMode {
         float moveYInput = controller1.axis(Controller.Axis.LeftStickY, PowerCurve.Quadratic);
         float rotationInput = controller1.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
 
-        float armXInput = -controller2.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
+        float armXInput = controller2.axis(Controller.Axis.RightStickX, PowerCurve.Cubic);
         float armYInput = -controller2.axis(Controller.Axis.LeftStickY, PowerCurve.Cubic);
         boolean clawInput = controller2.pressed(Controller.Button.A);
         boolean bucketInput = controller2.pressed(Controller.Button.B);
         double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
-
+        telemetry.addData("FUCKING DPAD", (controller2.button(Controller.Button.DPadUp) ? 1 : 0));
+        telemetry.addData("FUCKING DPADDOWN", (controller2.button(Controller.Button.DPadDown) ? -1 : 0));
+        telemetry.addData("EHFUBIWEYFSDJO PIVOT", pivot);
+        chassis.endPivotMotor.setVelocity(pivot * 150);
         if (clawInput) {
             chassis.claw.setPosition(clawClosed ? 1 : 0);
             clawClosed = !clawClosed;
@@ -228,23 +241,33 @@ public class Recorder extends OpMode {
             chassis.bucket.setPosition(bucketDown ? 1 : 0);
             bucketDown = !bucketDown;
         }
+        if (chassis.collectionArmMotor.getCurrentPosition() <= -2360 && armXInput < 0 || chassis.collectionArmMotor.getCurrentPosition() >= 0 && armXInput > 0) {
+            chassis.collectionArmMotor.setVelocity(0);
+            telemetry.addLine("======== ALERT ========");
+            telemetry.addLine("LIMIT REACHED FOR COLLECTION ARM");
+        }
+        else {
+            chassis.collectionArmMotor.setVelocity(armXInput * 500);
+        }
         if (chassis.scoringArmMotor.getCurrentPosition() >= 0 && armYInput > 0 || chassis.scoringArmMotor.getCurrentPosition() <= -3100 && armYInput < 0) {
             chassis.scoringArmMotor.setVelocity(0);
             telemetry.addLine("======== ALERT ========");
             telemetry.addLine("LIMIT REACHED FOR SCORING ARM");
         }
         else chassis.scoringArmMotor.setVelocity(armYInput * 900);
-        if (chassis.endPivotMotor.getCurrentPosition() >= 0 && pivot > 0 || chassis.endPivotMotor.getCurrentPosition() <= -240 && pivot < 0) {
-            chassis.endPivotMotor.setVelocity(0);
-            telemetry.addLine("======== ALERT ========");
-            telemetry.addLine("LIMIT REACHED FOR END EFFECTOR PIVOT");
-        }
-        else {
-            chassis.endPivotMotor.setVelocity(pivot * 150);
+        double samv = chassis.scoringArmMotor.getVelocity();
+        if (samv > 0 && chassis.scoringArmMotor.getCurrentPosition() > -800) {
+            double mult = (Math.pow(chassis.scoringArmMotor.getCurrentPosition()/895.0, 2) + 0.2);
+            if (mult > 1) mult = 1;
+            chassis.scoringArmMotor.setVelocity(samv * mult);
+            telemetry.addLine("Scoring arm " + Math.round(mult*100)/100 + "x slowdown");
         }
 
+        telemetry.addData("armXInput", armXInput);
+        telemetry.addData("Arm velocity", chassis.collectionArmMotor.getVelocity());
+        telemetry.addData("Arm mode", chassis.collectionArmMotor.getMode().toString());
         boolean not_inputed = moveXInput + moveYInput + rotationInput + armXInput + armYInput + pivot == 0 &&
-                            !clawInput && !bucketInput;
+                            !clawInput && !bucketInput && !chassis.ascention.isBusy();
 
 
         if (!not_inputed && !RECORDING) {
@@ -313,7 +336,7 @@ public class Recorder extends OpMode {
     }
 
     public void saveRobotState(double horzPow, double vertPow, double turnPow, double cYaw, int harmpos, int vertpos, double bucket, double claw, int pivot) {
-        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow, harmpos, vertpos, bucket, claw, 0, pivot);
+        SaveState latest = new SaveState(horzPow, vertPow, cYaw, getRuntime()-idleRemoveTime, maxSpeed, turnPow, harmpos, vertpos, bucket, claw, 0, pivot, chassis.ascention.getCurrentPosition() != 0);
         states.add(latest);
 
         telemetry.addLine("===== LAST SAVED SAVESTATE =====");

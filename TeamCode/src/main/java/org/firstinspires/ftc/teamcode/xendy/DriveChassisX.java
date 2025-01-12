@@ -21,7 +21,7 @@ public class DriveChassisX {
     public static final double WHEEL_CIRCUMFERENCE = 23.94; // In CM
     public static final float HORIZONTAL_BALANCE = 1.1f;
 
-    public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor;
+    public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor, ascention;
     public Servo bucket;
     public Servo claw;
 
@@ -50,6 +50,7 @@ public class DriveChassisX {
         collectionArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "horizontalSlide");
         scoringArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "verticalSlide");
         endPivotMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "endPivotMotor");
+        ascention = (DcMotorEx) hardwareMap.get(DcMotor.class, "ascension");
 
         scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -72,18 +73,19 @@ public class DriveChassisX {
     }
 
     public void isAuto() {
-        collectionArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        endPivotMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        scoringArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        // -280
         collectionArmMotor.setTargetPosition(0);
         endPivotMotor.setTargetPosition(0);
         scoringArmMotor.setTargetPosition(0);
+        collectionArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        endPivotMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        scoringArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        claw.setPosition(0);
-        bucket.setPosition(0);
+        claw.setPosition(1);
+        bucket.setPosition(1);
     }
 
     public void goTele() {

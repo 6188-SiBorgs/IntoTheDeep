@@ -7,6 +7,7 @@ import android.os.Environment;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -76,6 +77,9 @@ public class XendyNotSimpleAutonomous extends OpMode {
     @Override
     public void loop() {
         if (first) {
+            chassis.ascention.setTargetPosition(-2380);
+            chassis.ascention.setPower(1);
+            chassis.ascention.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             resetRuntime();
             first = false;
         }

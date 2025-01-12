@@ -17,7 +17,7 @@ public class DriveChassis {
     // Initialize our motors
     public DcMotorEx leftFrontMotor, leftBackMotor, rightFrontMotor, rightBackMotor;
     // -50 to -2150
-    public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor;
+    public DcMotorEx collectionArmMotor, scoringArmMotor, endPivotMotor, ascention;
     public Servo bucket;
     public Servo claw;
 
@@ -57,10 +57,12 @@ public class DriveChassis {
             collectionArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "horizontalSlide");
             scoringArmMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "verticalSlide");
             endPivotMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "endPivotMotor");
+            ascention = (DcMotorEx) hardwareMap.get(DcMotor.class, "ascension");
 
             scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            ascention.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
             scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             collectionArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.utils.controller.Controller.*;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -42,8 +43,15 @@ public class Teleop extends OpMode {
 
     private boolean clawClosed = false;
     private boolean bucketDown = true;
+
+    boolean firstRun = true;
     @Override
     public void loop() {
+        if (firstRun) {
+            chassis.endPivotMotor.setTargetPosition(-250);
+            chassis.endPivotMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            firstRun = false;
+        }
         // Keeping track of the buttons from the last loop iteration so we do not need a billion booleans
         controller1.update(gamepad1);
         controller2.update(gamepad2);
@@ -71,22 +79,33 @@ public class Teleop extends OpMode {
             chassis.collectionArmMotor.setVelocity(armXInput * 500);
         }
 
-        if (chassis.scoringArmMotor.getCurrentPosition() >= 0 && armYInput > 0 || chassis.scoringArmMotor.getCurrentPosition() <= -3100 && armYInput < 0) {
-            chassis.scoringArmMotor.setVelocity(0);
-            telemetry.addLine("======== ALERT ========");
-            telemetry.addLine("LIMIT REACHED FOR SCORING ARM");
-        }
-        else chassis.scoringArmMotor.setVelocity(armYInput * 1150);
-        double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
-
-        if (chassis.endPivotMotor.getCurrentPosition() >= 0 && pivot > 0 || chassis.endPivotMotor.getCurrentPosition() <= -240 && pivot < 0) {
-            chassis.endPivotMotor.setVelocity(0);
-            telemetry.addLine("======== ALERT ========");
-            telemetry.addLine("LIMIT REACHED FOR END EFFECTOR PIVOT");
+        if (chassis.scoringArmMotor.getMode().equals(DcMotor.RunMode.RUN_TO_POSITION)) {
+            telemetry.addLine("Moving scoring arm position to extended!");
+            telemetry.addLine("Cannot move vertical arm!");
+            if (!chassis.scoringArmMotor.isBusy()) {
+                chassis.scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
         }
         else {
-            chassis.endPivotMotor.setVelocity(pivot * 150);
+            if (chassis.scoringArmMotor.getCurrentPosition() >= 0 && armYInput > 0 || chassis.scoringArmMotor.getCurrentPosition() <= -3100 && armYInput < 0) {
+                chassis.scoringArmMotor.setVelocity(0);
+                telemetry.addLine("======== ALERT ========");
+                telemetry.addLine("LIMIT REACHED FOR SCORING ARM");
+            }
+            else chassis.scoringArmMotor.setVelocity(armYInput * 1150);
+            double samv = chassis.scoringArmMotor.getVelocity();
+            if (samv > 0 && chassis.scoringArmMotor.getCurrentPosition() > -800) {
+                double mult = (Math.pow(chassis.scoringArmMotor.getCurrentPosition()/895.0, 2) + 0.2);
+                if (mult > 1) mult = 1;
+                chassis.scoringArmMotor.setVelocity(samv * mult);
+                telemetry.addLine("Scoring arm " + Math.round(mult*100)/100 + "x slowdown");
+            }
         }
+        double ascension = -controller1.axis(Axis.LeftTrigger) + controller1.axis(Axis.RightTrigger);
+        chassis.ascention.setPower(ascension);
+
+        double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
+        chassis.endPivotMotor.setVelocity(pivot * 100);
 
         if (controller2.pressed(Controller.Button.A)) {
             chassis.claw.setPosition(clawClosed ? 1 : 0);

@@ -58,11 +58,19 @@ public class ArmTesting extends OpMode {
             telemetry.addLine("LIMIT REACHED FOR COLLECTION ARM");
         }
         else collectionArmMotor.setVelocity(xInput * 500);
+        if (gamepad2.dpad_right) collectionArmMotor.setVelocity(xInput * 500);
         if (scoringArmMotor.getCurrentPosition() >= 0 && yInput > 0 || scoringArmMotor.getCurrentPosition() <= -3100 && yInput < 0) {
             scoringArmMotor.setVelocity(0);
             telemetry.addLine("LIMIT REACHED FOR SCORING ARM");
         }
         else scoringArmMotor.setVelocity(yInput * 1600);
+        double samv = scoringArmMotor.getVelocity();
+        if (samv > 0 && scoringArmMotor.getCurrentPosition() > -800) {
+            double mult = (Math.pow(scoringArmMotor.getCurrentPosition()/895.0, 2) + 0.2);
+            if (mult > 1) mult = 1;
+            scoringArmMotor.setVelocity(samv * mult);
+            telemetry.addLine("Scoring arm " + Math.round(mult*100)/100 + "x slowdown");
+        }
 
         if (controller2.pressed(Controller.Button.B)) {
             collectionArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
