@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.xendy;
 
 import static org.firstinspires.ftc.teamcode.xendy.AutoUtils.error;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -9,6 +10,7 @@ import org.firstinspires.ftc.teamcode.utils.controller.Controller;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 
 @TeleOp
+@Disabled
 public class SetPrimaryAutonomous extends LinearOpMode {
 
     @Override

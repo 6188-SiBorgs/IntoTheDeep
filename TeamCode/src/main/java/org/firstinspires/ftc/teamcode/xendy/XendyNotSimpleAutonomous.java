@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.xendy.AutoUtils.loadStatesFromFile;
 import android.os.Environment;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.Numbers;
 import java.io.IOException;
 import java.util.ArrayList;
 
+@Disabled
 @Autonomous(name="XendyNotSimpleAutonomous")
 public class XendyNotSimpleAutonomous extends OpMode {
     public String pathName = "";

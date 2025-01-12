@@ -55,6 +55,11 @@ public class PIDTest extends LinearOpMode {
                 Kd -= 0.1;
             }
 
+            telemetry.addData("Kp", Kp);
+            telemetry.addData("Ki", Ki);
+            telemetry.addData("Kd", Kd);
+            telemetry.update();
+
             double turnPower = PIDControl(targetAngle, yaw);
             chassis.leftFrontMotor.setPower(turnPower);
             chassis.leftBackMotor.setPower(turnPower);

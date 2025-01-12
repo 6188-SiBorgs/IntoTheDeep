@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.xendy.fomx;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
+@Disabled
 @TeleOp(name = "FoxTest")
 public class FoxTest extends LinearOpMode {
     FoxDriveCore foxDriveCore;
