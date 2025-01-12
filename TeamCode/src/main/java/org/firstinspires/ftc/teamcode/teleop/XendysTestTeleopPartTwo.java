@@ -14,7 +14,6 @@ import org.firstinspires.ftc.teamcode.utils.Numbers;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
-@Disabled
 @TeleOp(name = "Test Teleop")
 public class XendysTestTeleopPartTwo extends OpMode {
     private DriveChassis chassis;
