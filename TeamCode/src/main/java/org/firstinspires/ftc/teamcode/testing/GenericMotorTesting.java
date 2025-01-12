@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
  *
  * Would be much smarter if you swapped out the wires instead
  * */
-@Disabled
 @TeleOp(name = "GenericMotorTesting", group = "Test Programs")
 public class GenericMotorTesting extends OpMode {
     public DcMotorEx testMotor;

@@ -8,7 +8,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.DriveChassis;
 
 
-@Disabled
 @TeleOp(name = "DebugTeleop")
 public class DebugTeleop extends OpMode {
     private DriveChassis chassis;

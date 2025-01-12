@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.xendy.DriveChassisX;
 
-@Disabled
 @TeleOp(name="second chassis testing")
 public class SecondChassisTesting extends OpMode {
     DriveChassisX chassis;

@@ -16,7 +16,6 @@ import org.firstinspires.ftc.teamcode.utils.controller.Controller;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
-@Disabled
 @TeleOp(name = "Teleop")
 public class Teleop extends OpMode {
     private DriveChassis chassis;
