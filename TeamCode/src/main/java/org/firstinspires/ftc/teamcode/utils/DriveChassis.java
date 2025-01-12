@@ -61,7 +61,8 @@ public class DriveChassis {
 
             scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            endPivotMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            endPivotMotor.setTargetPosition(0);
+            endPivotMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             ascention.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
             scoringArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

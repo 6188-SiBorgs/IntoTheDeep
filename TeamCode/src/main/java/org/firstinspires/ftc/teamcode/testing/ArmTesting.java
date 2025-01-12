@@ -58,7 +58,7 @@ public class ArmTesting extends OpMode {
             telemetry.addLine("LIMIT REACHED FOR COLLECTION ARM");
         }
         else collectionArmMotor.setVelocity(xInput * 500);
-        if (gamepad2.dpad_right) collectionArmMotor.setVelocity(xInput * 500);
+        if (gamepad2.dpad_left) collectionArmMotor.setVelocity(xInput * 500);
         if (scoringArmMotor.getCurrentPosition() >= 0 && yInput > 0 || scoringArmMotor.getCurrentPosition() <= -3100 && yInput < 0) {
             scoringArmMotor.setVelocity(0);
             telemetry.addLine("LIMIT REACHED FOR SCORING ARM");

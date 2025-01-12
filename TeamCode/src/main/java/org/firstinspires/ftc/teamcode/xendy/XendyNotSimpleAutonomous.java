@@ -127,6 +127,7 @@ public class XendyNotSimpleAutonomous extends OpMode {
             chassis.scoringArmMotor.setTargetPosition(currentState.vertArmPosition);
             chassis.collectionArmMotor.setTargetPosition(currentState.horizArmPosition);
             chassis.endPivotMotor.setTargetPosition(currentState.pivotPosition);
+//          // chassis.scoringArmMotor.setVelocity((chassis.scoringArmMotor.getTargetPosition() - chassis.scoringArmMotor.getCurrentPosition())/(getRuntime()-));
         }
         else {
             telemetry.addLine("Out of states.");

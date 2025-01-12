@@ -28,6 +28,7 @@ public class Teleop extends OpMode {
     private double normalizedYaw;
 
     private double targetRotation;
+    private boolean lockAscention = false;
 
     // Gamepad States
     private final GameController controller1 = new GameController();
@@ -102,9 +103,14 @@ public class Teleop extends OpMode {
         }
         double ascension = -controller1.axis(Axis.LeftTrigger) + controller1.axis(Axis.RightTrigger);
         chassis.ascention.setPower(ascension);
+        if (gamepad1.dpad_up) lockAscention = true;
+        if (gamepad1.dpad_down) lockAscention = false;
+        if (lockAscention) chassis.ascention.setPower(1);
 
         double pivot = (controller2.button(Controller.Button.DPadUp) ? 1 : 0) + (controller2.button(Controller.Button.DPadDown) ? -1 : 0);
-        chassis.endPivotMotor.setVelocity(pivot * 100);
+        if (pivot < 0) chassis.endPivotMotor.setTargetPosition(-220);
+        else chassis.endPivotMotor.setTargetPosition(0);
+        chassis.endPivotMotor.setVelocity(pivot * 150);
 
         if (controller2.pressed(Controller.Button.A)) {
             chassis.claw.setPosition(clawClosed ? 1 : 0);
