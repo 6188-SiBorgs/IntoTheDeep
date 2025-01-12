@@ -85,7 +85,7 @@ public class DriveChassisX {
         endPivotMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         claw.setPosition(1);
-        bucket.setPosition(1);
+        bucket.setPosition(0.9);
     }
 
     public void goTele() {

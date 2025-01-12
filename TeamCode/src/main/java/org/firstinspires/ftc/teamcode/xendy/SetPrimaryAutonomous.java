@@ -10,7 +10,6 @@ import org.firstinspires.ftc.teamcode.utils.controller.Controller;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 
 @TeleOp
-@Disabled
 public class SetPrimaryAutonomous extends LinearOpMode {
 
     @Override

@@ -16,7 +16,6 @@ import org.firstinspires.ftc.teamcode.utils.controller.Controller;
 import org.firstinspires.ftc.teamcode.utils.controller.GameController;
 import org.firstinspires.ftc.teamcode.utils.controller.PowerCurve;
 
-@Disabled
 @TeleOp(name = "Teleop")
 public class Teleop extends OpMode {
     private DriveChassis chassis;
@@ -48,8 +47,8 @@ public class Teleop extends OpMode {
     @Override
     public void loop() {
         if (firstRun) {
-            chassis.endPivotMotor.setTargetPosition(-250);
-            chassis.endPivotMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            chassis.collectionArmMotor.setTargetPosition(-250);
+            chassis.collectionArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             firstRun = false;
         }
         // Keeping track of the buttons from the last loop iteration so we do not need a billion booleans
@@ -79,11 +78,11 @@ public class Teleop extends OpMode {
             chassis.collectionArmMotor.setVelocity(armXInput * 500);
         }
 
-        if (chassis.scoringArmMotor.getMode().equals(DcMotor.RunMode.RUN_TO_POSITION)) {
+        if (chassis.collectionArmMotor.getMode().equals(DcMotor.RunMode.RUN_TO_POSITION)) {
             telemetry.addLine("Moving scoring arm position to extended!");
             telemetry.addLine("Cannot move vertical arm!");
-            if (!chassis.scoringArmMotor.isBusy()) {
-                chassis.scoringArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            if (!chassis.collectionArmMotor.isBusy()) {
+                chassis.collectionArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }
         else {

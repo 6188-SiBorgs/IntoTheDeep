@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-@Disabled
 @Config
 @TeleOp(name="Autonomous Recorder")
 public class Recorder extends OpMode {
@@ -238,7 +237,7 @@ public class Recorder extends OpMode {
         }
 
         if (bucketInput) {
-            chassis.bucket.setPosition(bucketDown ? 1 : 0);
+            chassis.bucket.setPosition(bucketDown ? 0.95 : 0);
             bucketDown = !bucketDown;
         }
         if (chassis.collectionArmMotor.getCurrentPosition() <= -2360 && armXInput < 0 || chassis.collectionArmMotor.getCurrentPosition() >= 0 && armXInput > 0) {

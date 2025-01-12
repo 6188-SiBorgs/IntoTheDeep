@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.utils.DriveChassis;
 
-@Disabled
 @Autonomous(name = "Forward Only Autonomous", group="XendySimpleTeleop")
 public class XendySimpleAutonomous extends OpMode {
     DriveChassis chassis;

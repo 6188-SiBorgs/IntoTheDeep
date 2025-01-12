@@ -16,7 +16,6 @@ import org.firstinspires.ftc.teamcode.utils.Numbers;
 import java.io.IOException;
 import java.util.ArrayList;
 
-@Disabled
 @Autonomous(name="XendyNotSimpleAutonomous")
 public class XendyNotSimpleAutonomous extends OpMode {
     public String pathName = "";
@@ -128,7 +127,6 @@ public class XendyNotSimpleAutonomous extends OpMode {
             chassis.scoringArmMotor.setTargetPosition(currentState.vertArmPosition);
             chassis.collectionArmMotor.setTargetPosition(currentState.horizArmPosition);
             chassis.endPivotMotor.setTargetPosition(currentState.pivotPosition);
-            chassis.scoringArmMotor.setVelocity(20);
         }
         else {
             telemetry.addLine("Out of states.");
